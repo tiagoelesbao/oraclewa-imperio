@@ -1,0 +1,26 @@
+Parabéns {{customerName}}! 🎉
+
+Sua compra #{{orderId}} foi aprovada com sucesso!
+
+💰 Valor total: {{orderTotal}}
+
+{{#if paymentMethod}}
+🏦 Forma de pagamento: {{paymentMethod}}
+{{/if}}
+
+{{#if transactionId}}
+🔖 ID da transação: {{transactionId}}
+{{/if}}
+
+{{#if items}}
+📦 Produtos confirmados:
+{{#each items}}
+• {{this.name}} - {{this.quantity}}x {{currency this.price}}
+{{/each}}
+{{/if}}
+
+🚚 Em breve você receberá as informações de envio.
+
+Obrigado por comprar conosco! 💚
+
+Equipe Império

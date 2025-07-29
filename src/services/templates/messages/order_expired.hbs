@@ -1,0 +1,23 @@
+Oi {{customerName}}! ⏰
+
+Sua reserva #{{orderId}} no valor de {{orderTotal}} está prestes a expirar!
+
+{{#if expiresAt}}
+⚠️ Data limite: {{expiresAt}}
+{{/if}}
+
+Não perca essa oportunidade! Finalize agora:
+{{#if paymentUrl}}
+👉 {{paymentUrl}}
+{{/if}}
+
+{{#if items}}
+Produtos reservados:
+{{#each items}}
+• {{this.name}} - {{this.quantity}}x {{currency this.price}}
+{{/each}}
+{{/if}}
+
+Após o vencimento, não podemos garantir a disponibilidade dos itens.
+
+💚 Equipe Império
