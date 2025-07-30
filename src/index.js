@@ -10,7 +10,7 @@ import routes from './routes/index.js';
 import { connectDatabase } from './database/connection.js';
 import { initializeRedis } from './services/redis/client.js';
 import { initializeQueues } from './services/queue/manager.js';
-import { initializeWhatsAppInstances } from './services/whatsapp/manager.js';
+import { initializeWhatsAppInstances } from './services/whatsapp/evolution-manager.js';
 
 dotenv.config();
 

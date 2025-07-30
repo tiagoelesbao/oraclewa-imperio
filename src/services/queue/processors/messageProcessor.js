@@ -1,5 +1,5 @@
 import logger from '../../../utils/logger.js';
-import { sendMessage } from '../../whatsapp/manager.js';
+import { sendMessage } from '../../whatsapp/evolution-manager.js';
 import { createMessageLog } from '../../../database/models/MessageLog.js';
 
 export const processMessage = async (job) => {
@@ -19,7 +19,7 @@ export const processMessage = async (job) => {
       type,
       customerId,
       status: 'sent',
-      instanceId: result.instanceId,
+      instanceId: result.instanceName,
       messageId: result.messageId,
       metadata: {
         ...metadata,
