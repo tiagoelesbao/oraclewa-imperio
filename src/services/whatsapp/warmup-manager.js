@@ -52,6 +52,12 @@ export class WhatsAppWarmupManager {
    * Verifica se pode enviar mensagem baseado nos limites
    */
   async canSendMessage(instanceName) {
+    // 🚨 PARADA DE EMERGÊNCIA
+    if (process.env.EMERGENCY_STOP === 'true') {
+      logger.error('🚨 SISTEMA PAUSADO - EMERGENCY_STOP ativado');
+      return false;
+    }
+    
     if (!this.redis) return true; // Sem Redis, permitir sempre
     
     const now = new Date();
