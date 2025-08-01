@@ -47,13 +47,9 @@ export const handleOrderExpired = async (req, res) => {
     const message = await renderTemplate('order_expired', messageData);
     logger.info('Template rendered successfully, message length:', message ? message.length : 0);
     
-    // Adicionar suporte para botões
+    // Apenas botão para acessar o site (recuperação de venda)
     const messageOptions = {
       buttons: [
-        {
-          type: 'copy',
-          copyCode: data.pixCode || ''
-        },
         {
           type: 'url',
           displayText: 'Acessar Site',
