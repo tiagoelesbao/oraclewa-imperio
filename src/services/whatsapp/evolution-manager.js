@@ -12,7 +12,7 @@ export const initializeWhatsAppInstances = async () => {
     const evolutionApiKey = process.env.EVOLUTION_API_KEY;
     
     // Nomes das instâncias conforme criadas no Evolution
-    const instanceNames = ['imperio_1', 'imperio_2', 'imperio_3', 'imperio_4'];
+    const instanceNames = ['imperio1', 'imperio2', 'imperio3'];
     
     // Cliente axios único para Evolution API
     const evolutionClient = axios.create({
@@ -130,17 +130,17 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
       formattedPhone = '55' + formattedPhone;
     }
     
-    const numberWithDomain = formattedPhone + '@s.whatsapp.net';
     let response;
     
     // Temporariamente desabilitando botões para evitar erros
     // TODO: Implementar formato correto de botões para Evolution API
     
-    // Mensagem de texto simples (sempre por enquanto)
+    // Mensagem de texto simples (formato correto Evolution API)
     response = await instance.client.post('/message/sendText/' + instance.name, {
-      number: numberWithDomain,
-      text: message,
-      delay: 1000
+      number: formattedPhone,
+      textMessage: {
+        text: message
+      }
     });
     
     // Log se havia botões planejados
@@ -186,11 +186,12 @@ export const sendMessageWithMedia = async (phoneNumber, message, mediaUrl, insta
     }
     
     const response = await instance.client.post('/message/sendMedia/' + instance.name, {
-      number: formattedPhone + '@s.whatsapp.net',
-      mediatype: 'image',
-      media: mediaUrl,
-      caption: message,
-      delay: 1000
+      number: formattedPhone,
+      mediaMessage: {
+        mediatype: 'image',
+        media: mediaUrl,
+        caption: message
+      }
     });
     
     logger.info(`Media message sent successfully via ${instance.name} to ${phoneNumber}`);
