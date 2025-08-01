@@ -3,6 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import logger from '../../utils/logger.js';
+import { getRandomVariation as getOrderPaidVariation } from './variations/order_paid_variations.js';
+import { getRandomVariation as getOrderExpiredVariation } from './variations/order_expired_variations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,6 +112,22 @@ Obrigado por comprar conosco! 💚`
 };
 
 export const renderTemplate = async (templateName, data) => {
+  // Usar variação aleatória para mensagens específicas
+  if (templateName === 'order_paid' && Math.random() > 0.3) { // 70% chance de variação
+    const variationTemplate = getOrderPaidVariation();
+    const compiledVariation = Handlebars.compile(variationTemplate);
+    logger.info('Using message variation for order_paid');
+    return compiledVariation(data);
+  }
+  
+  if (templateName === 'order_expired' && Math.random() > 0.3) { // 70% chance de variação
+    const variationTemplate = getOrderExpiredVariation();
+    const compiledVariation = Handlebars.compile(variationTemplate);
+    logger.info('Using message variation for order_expired');
+    return compiledVariation(data);
+  }
+  
+  // Usar template padrão
   if (!templates[templateName]) {
     await loadTemplates();
   }

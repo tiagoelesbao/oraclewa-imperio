@@ -1,6 +1,7 @@
 import axios from 'axios';
 import logger from '../../utils/logger.js';
 import { getRedisClient } from '../redis/client.js';
+import warmupManager from './warmup-manager.js';
 
 const instances = [];
 let currentInstanceIndex = 0;
@@ -87,16 +88,21 @@ const resetMessageCounts = () => {
 
 export const getNextAvailableInstance = async () => {
   const redis = process.env.SKIP_DB !== 'true' ? getRedisClient() : null;
-  const rateLimit = parseInt(process.env.RATE_LIMIT_PER_INSTANCE || '500');
   
   let attempts = 0;
   while (attempts < instances.length) {
     const instance = instances[currentInstanceIndex];
     currentInstanceIndex = (currentInstanceIndex + 1) % instances.length;
     
-    if (instance.status === 'connected' && instance.messageCount < rateLimit) {
+    // Verificar se pode enviar mensagem (limites e horários)
+    const canSend = await warmupManager.canSendMessage(instance.name);
+    
+    if (instance.status === 'connected' && canSend) {
       instance.messageCount++;
       instance.lastMessageTime = new Date();
+      
+      // Registrar mensagem enviada
+      await warmupManager.recordMessageSent(instance.name);
       
       // Only update Redis stats if available
       if (process.env.SKIP_DB !== 'true' && redis) {
@@ -109,11 +115,29 @@ export const getNextAvailableInstance = async () => {
     attempts++;
   }
   
-  throw new Error('No available WhatsApp instances');
+  throw new Error('No available WhatsApp instances - all at limit or outside business hours');
 };
 
 export const sendMessage = async (phoneNumber, message, instanceName = null, messageOptions = null) => {
   try {
+    // Verificar se pode enviar para este destinatário
+    const canMessage = await warmupManager.canMessageRecipient(phoneNumber);
+    if (!canMessage) {
+      logger.warn(`Skipping message to ${phoneNumber} - contacted recently`);
+      return {
+        success: false,
+        reason: 'recipient_cooldown',
+        message: 'Recipient contacted in the last 24 hours'
+      };
+    }
+    
+    // Aguardar delay recomendado
+    const delay = await warmupManager.getRecommendedDelay(instanceName || 'any');
+    if (delay > 0) {
+      logger.info(`Waiting ${Math.round(delay/1000)}s before sending message...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
     let instance;
     
     if (instanceName) {
@@ -158,6 +182,9 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
         replyButtons: messageOptions.replyButtons
       });
     }
+    
+    // Registrar contato com destinatário
+    await warmupManager.recordRecipientContact(phoneNumber);
     
     logger.info(`Message sent successfully via ${instance.name} to ${phoneNumber}`, {
       hasButtons: !!(messageOptions?.buttons || messageOptions?.replyButtons)
