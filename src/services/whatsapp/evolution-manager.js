@@ -133,63 +133,21 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
     const numberWithDomain = formattedPhone + '@s.whatsapp.net';
     let response;
     
-    // Verificar se há botões ou opções especiais
+    // Temporariamente desabilitando botões para evitar erros
+    // TODO: Implementar formato correto de botões para Evolution API
+    
+    // Mensagem de texto simples (sempre por enquanto)
+    response = await instance.client.post('/message/sendText/' + instance.name, {
+      number: numberWithDomain,
+      text: message,
+      delay: 1000
+    });
+    
+    // Log se havia botões planejados
     if (messageOptions?.buttons || messageOptions?.replyButtons) {
-      // Preparar payload para mensagem com botões
-      const buttonPayload = {
-        number: numberWithDomain,
-        delay: 1000
-      };
-      
-      if (messageOptions.buttons) {
-        // Botões de ação (copy, url)
-        const buttons = [];
-        
-        for (const button of messageOptions.buttons) {
-          if (button.type === 'copy' && button.copyCode) {
-            buttons.push({
-              buttonId: 'copy_pix',
-              buttonText: { displayText: 'Copiar PIX' },
-              type: 1
-            });
-          } else if (button.type === 'url' && button.url) {
-            buttons.push({
-              buttonId: 'access_site',
-              buttonText: { displayText: button.displayText || 'Acessar Site' },
-              type: 1
-            });
-          }
-        }
-        
-        buttonPayload.buttonMessage = {
-          text: message,
-          buttons: buttons,
-          headerType: 1
-        };
-        
-        response = await instance.client.post('/message/sendButtons/' + instance.name, buttonPayload);
-      } else if (messageOptions.replyButtons) {
-        // Botões de resposta rápida
-        const replyButtons = messageOptions.replyButtons.map(btn => ({
-          buttonId: btn.id,
-          buttonText: { displayText: btn.title },
-          type: 1
-        }));
-        
-        buttonPayload.buttonMessage = {
-          text: message,
-          buttons: replyButtons,
-          headerType: 1
-        };
-        
-        response = await instance.client.post('/message/sendButtons/' + instance.name, buttonPayload);
-      }
-    } else {
-      // Mensagem de texto simples
-      response = await instance.client.post('/message/sendText/' + instance.name, {
-        number: numberWithDomain,
-        text: message,
-        delay: 1000
+      logger.info('Buttons were planned but sent as text message to avoid API errors', {
+        buttons: messageOptions.buttons,
+        replyButtons: messageOptions.replyButtons
       });
     }
     
