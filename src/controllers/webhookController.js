@@ -16,14 +16,14 @@ export const handleOrderExpired = async (req, res) => {
     });
 
     const messageData = {
-      user: data.user || data,
-      product: data.product || { title: 'Sorteio' },
-      quantity: data.quantity || 1,
-      total: data.total || 0,
-      pixCode: data.pixCode || '',
-      expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
-      affiliate: data.affiliate || 'A0RJJ5L1QK',
-      id: data.id
+      user: order.customer,
+      product: { title: order.items?.[0]?.name || 'Sorteio' },
+      quantity: order.items?.[0]?.quantity || 1,
+      total: order.total,
+      pixCode: order.payment_url || '',
+      expirationAt: order.expires_at ? new Date(order.expires_at).toLocaleDateString('pt-BR') : null,
+      affiliate: 'A0RJJ5L1QK',
+      id: order.id
     };
     
     const message = await renderTemplate('order_expired', messageData);
@@ -33,26 +33,26 @@ export const handleOrderExpired = async (req, res) => {
       buttons: [
         {
           type: 'copy',
-          copyCode: data.pixCode
+          copyCode: order.payment_url || ''
         },
         {
           type: 'url',
           displayText: 'Acessar Site',
-          url: `https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=${data.affiliate || 'A0RJJ5L1QK'}`
+          url: `https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK`
         }
       ]
     };
 
     await addMessageToQueue({
-      phoneNumber: data.user?.phone || data.phone,
+      phoneNumber: order.customer.phone,
       message,
       messageOptions,
       type: 'order_expired',
-      customerId: data.user?.email || data.user?.phone || data.id,
+      customerId: order.customer.email || order.customer.phone || order.id,
       metadata: {
-        orderId: data.id,
-        orderTotal: data.total,
-        expiresAt: data.expirationAt,
+        orderId: order.id,
+        orderTotal: order.total,
+        expiresAt: order.expires_at,
         buttons: messageOptions.buttons
       }
     }, {
@@ -89,12 +89,12 @@ export const handleOrderPaid = async (req, res) => {
     });
 
     const messageData = {
-      user: data.user || data,
-      product: data.product || { title: 'Sorteio' },
-      quantity: data.quantity || 1,
-      total: data.total || 0,
-      createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
-      id: data.id
+      user: order.customer,
+      product: { title: order.items?.[0]?.name || 'Sorteio' },
+      quantity: order.items?.[0]?.quantity || 1,
+      total: order.total,
+      createdAt: req.validatedData.created_at ? new Date(req.validatedData.created_at).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+      id: order.id
     };
     
     const message = await renderTemplate('order_paid', messageData);
@@ -110,14 +110,14 @@ export const handleOrderPaid = async (req, res) => {
     };
 
     await addMessageToQueue({
-      phoneNumber: data.user?.phone || data.phone,
+      phoneNumber: order.customer.phone,
       message,
       messageOptions,
       type: 'order_paid',
-      customerId: data.user?.email || data.user?.phone || data.id,
+      customerId: order.customer.email || order.customer.phone || order.id,
       metadata: {
-        orderId: data.id,
-        orderTotal: data.total,
+        orderId: order.id,
+        orderTotal: order.total,
         replyButtons: messageOptions.replyButtons
       }
     }, {
