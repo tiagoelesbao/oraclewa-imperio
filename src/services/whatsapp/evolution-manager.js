@@ -6,14 +6,42 @@ import warmupManager from './warmup-manager.js';
 const instances = [];
 let currentInstanceIndex = 0;
 
+// Função para detectar quais instâncias estão realmente funcionando
+const getWorkingInstances = async (client, potentialInstances) => {
+  const workingInstances = [];
+  
+  logger.info('🔍 Detectando instâncias funcionais...');
+  
+  for (const instanceName of potentialInstances) {
+    try {
+      const response = await client.get(`/instance/connectionState/${instanceName}`);
+      const state = response.data?.instance?.state;
+      
+      if (state === 'open') {
+        workingInstances.push(instanceName);
+        logger.info(`✅ ${instanceName}: Conectada e funcionando`);
+      } else {
+        logger.warn(`⚠️ ${instanceName}: Estado ${state || 'desconhecido'}`);
+      }
+    } catch (error) {
+      logger.error(`❌ ${instanceName}: Erro ao verificar - ${error.message}`);
+    }
+  }
+  
+  if (workingInstances.length === 0) {
+    logger.error('🚨 NENHUMA INSTÂNCIA FUNCIONANDO! Usando todas mesmo assim...');
+    return potentialInstances; // Fallback
+  }
+  
+  logger.info(`🎯 Usando ${workingInstances.length} instância(s): ${workingInstances.join(', ')}`);
+  return workingInstances;
+};
+
 export const initializeWhatsAppInstances = async () => {
   try {
     // Configuração para Evolution API unificada
     const evolutionUrl = process.env.EVOLUTION_API_URL;
     const evolutionApiKey = process.env.EVOLUTION_API_KEY;
-    
-    // Nomes das instâncias conforme criadas no Evolution (apenas as válidas)
-    const instanceNames = ['imperio1', 'imperio3'];
     
     // Cliente axios único para Evolution API
     const evolutionClient = axios.create({
@@ -24,6 +52,11 @@ export const initializeWhatsAppInstances = async () => {
       },
       timeout: 30000
     });
+
+    // Detectar automaticamente instâncias funcionais
+    // Começamos com todas as disponíveis e filtramos as que funcionam
+    const potentialInstances = ['imperio1', 'imperio3'];
+    const instanceNames = await getWorkingInstances(evolutionClient, potentialInstances);
 
     for (const instanceName of instanceNames) {
       try {
@@ -47,7 +80,13 @@ export const initializeWhatsAppInstances = async () => {
     setInterval(checkInstancesStatus, 60000); // Check every minute
     setInterval(resetMessageCounts, 3600000); // Reset counts every hour
 
-    logger.info('Evolution API instances initialized');
+    // Log especial para operação com poucos números
+    if (instances.length === 1) {
+      logger.info(`🎯 MODO NÚMERO ÚNICO ATIVADO - Usando apenas: ${instances[0].name}`);
+      logger.info('🛡️ Anti-ban ativo: delays, rate limiting e variações de mensagem');
+    } else {
+      logger.info(`Evolution API instances initialized - Total: ${instances.length}`);
+    }
   } catch (error) {
     logger.error('Failed to initialize Evolution API instances:', error);
     throw error;

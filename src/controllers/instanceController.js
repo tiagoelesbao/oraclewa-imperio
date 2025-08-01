@@ -1,19 +1,50 @@
 import logger from '../utils/logger.js';
-import { getInstancesStatus as getStatus } from '../services/whatsapp/manager.js';
+import { getInstancesStatus as getStatus } from '../services/whatsapp/evolution-manager.js';
+import warmupManager from '../services/whatsapp/warmup-manager.js';
 import axios from 'axios';
 
 export const getInstancesStatus = async (req, res) => {
   try {
     const instances = getStatus();
     
+    // Enriquecer dados com informações de aquecimento
+    const enrichedInstances = await Promise.all(instances.map(async (instance) => {
+      const dailyLimit = await warmupManager.getDailyLimit(instance.name);
+      const isInWarmup = await warmupManager.isNumberInWarmup(instance.name);
+      const canSend = await warmupManager.canSendMessage(instance.name);
+      
+      return {
+        ...instance,
+        dailyLimit,
+        isInWarmup,
+        canSend,
+        warmupStatus: isInWarmup ? `Dia ${Math.floor((Date.now() - parseInt(await warmupManager.redis?.get(`warmup:${instance.name}`) || '0')) / (1000 * 60 * 60 * 24)) + 1}/7` : 'Aquecido'
+      };
+    }));
+    
+    const connectedCount = instances.filter(i => i.status === 'connected').length;
+    const hour = new Date().getHours();
+    const isBusinessHours = hour >= 9 && hour < 20;
+    
     res.json({
-      instances,
+      instances: enrichedInstances,
       summary: {
         total: instances.length,
-        connected: instances.filter(i => i.status === 'connected').length,
+        connected: connectedCount,
         disconnected: instances.filter(i => i.status === 'disconnected').length,
-        error: instances.filter(i => i.status === 'error').length
-      }
+        error: instances.filter(i => i.status === 'error').length,
+        singleNumberMode: instances.length === 1,
+        businessHours: isBusinessHours,
+        currentHour: hour,
+        antibanActive: true
+      },
+      recommendations: instances.length === 1 ? [
+        '🎯 Modo número único ativo',
+        '🛡️ Rate limiting conservador aplicado',
+        '⏱️ Delays entre mensagens: 15-45s',
+        '📊 Limite diário baseado em aquecimento',
+        '🕘 Horário comercial: 9h-20h apenas'
+      ] : []
     });
   } catch (error) {
     logger.error('Error fetching instances status:', error);
