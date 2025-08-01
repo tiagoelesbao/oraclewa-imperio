@@ -12,10 +12,9 @@ if (process.env.SKIP_DB !== 'true') {
 export const handleOrderExpired = async (req, res) => {
   try {
     const { data } = req.validatedData;
-    const order = data.order;
     
     // Skip database logging if SKIP_DB is true
-    if (process.env.SKIP_DB !== 'true') {
+    if (process.env.SKIP_DB !== 'true' && WebhookLog) {
       await WebhookLog.create({
         type: 'order_expired',
         payload: req.validatedData,
@@ -24,14 +23,14 @@ export const handleOrderExpired = async (req, res) => {
     }
 
     const messageData = {
-      user: order.customer,
-      product: { title: order.items?.[0]?.name || 'Sorteio' },
-      quantity: order.items?.[0]?.quantity || 1,
-      total: order.total,
-      pixCode: order.payment_url || '',
-      expirationAt: order.expires_at ? new Date(order.expires_at).toLocaleDateString('pt-BR') : null,
-      affiliate: 'A0RJJ5L1QK',
-      id: order.id
+      user: data.user,
+      product: data.product,
+      quantity: data.quantity,
+      total: data.total,
+      pixCode: data.pixCode || '',
+      expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
+      affiliate: data.affiliate || 'A0RJJ5L1QK',
+      id: data.id
     };
     
     const message = await renderTemplate('order_expired', messageData);
@@ -41,7 +40,7 @@ export const handleOrderExpired = async (req, res) => {
       buttons: [
         {
           type: 'copy',
-          copyCode: order.payment_url || ''
+          copyCode: data.pixCode || ''
         },
         {
           type: 'url',
@@ -52,15 +51,15 @@ export const handleOrderExpired = async (req, res) => {
     };
 
     await addMessageToQueue({
-      phoneNumber: order.customer.phone,
+      phoneNumber: data.user.phone,
       message,
       messageOptions,
       type: 'order_expired',
-      customerId: order.customer.email || order.customer.phone || order.id,
+      customerId: data.user.email || data.user.phone || data.id,
       metadata: {
-        orderId: order.id,
-        orderTotal: order.total,
-        expiresAt: order.expires_at,
+        orderId: data.id,
+        orderTotal: data.total,
+        expiresAt: data.expirationAt,
         buttons: messageOptions.buttons
       }
     }, {
@@ -88,10 +87,9 @@ export const handleOrderExpired = async (req, res) => {
 export const handleOrderPaid = async (req, res) => {
   try {
     const { data } = req.validatedData;
-    const order = data.order;
     
     // Skip database logging if SKIP_DB is true
-    if (process.env.SKIP_DB !== 'true') {
+    if (process.env.SKIP_DB !== 'true' && WebhookLog) {
       await WebhookLog.create({
         type: 'order_paid',
         payload: req.validatedData,
@@ -100,12 +98,12 @@ export const handleOrderPaid = async (req, res) => {
     }
 
     const messageData = {
-      user: order.customer,
-      product: { title: order.items?.[0]?.name || 'Sorteio' },
-      quantity: order.items?.[0]?.quantity || 1,
-      total: order.total,
-      createdAt: req.validatedData.created_at ? new Date(req.validatedData.created_at).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
-      id: order.id
+      user: data.user,
+      product: data.product,
+      quantity: data.quantity,
+      total: data.total,
+      createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+      id: data.id
     };
     
     const message = await renderTemplate('order_paid', messageData);
@@ -121,14 +119,14 @@ export const handleOrderPaid = async (req, res) => {
     };
 
     await addMessageToQueue({
-      phoneNumber: order.customer.phone,
+      phoneNumber: data.user.phone,
       message,
       messageOptions,
       type: 'order_paid',
-      customerId: order.customer.email || order.customer.phone || order.id,
+      customerId: data.user.email || data.user.phone || data.id,
       metadata: {
-        orderId: order.id,
-        orderTotal: order.total,
+        orderId: data.id,
+        orderTotal: data.total,
         replyButtons: messageOptions.replyButtons
       }
     }, {

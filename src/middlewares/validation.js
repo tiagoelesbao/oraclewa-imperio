@@ -1,55 +1,69 @@
 import Joi from 'joi';
 
 const webhookSchemas = {
-  // Novos schemas para o sistema Império
+  // Schemas corretos para o sistema Império (estrutura real)
   order_expired: Joi.object({
     event: Joi.string().valid('order.expired').required(),
+    timestamp: Joi.date().iso().optional(),
     data: Joi.object({
-      order: Joi.object({
+      id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+      product: Joi.object({
         id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
-        total: Joi.number().positive().required(),
-        customer: Joi.object({
-          name: Joi.string().required(),
-          phone: Joi.string().required(),
-          email: Joi.string().email().optional()
-        }).required(),
-        items: Joi.array().items(
-          Joi.object({
-            name: Joi.string().required(),
-            quantity: Joi.number().integer().positive().required(),
-            price: Joi.number().positive().required()
-          })
-        ).optional(),
-        expires_at: Joi.date().iso().optional(),
-        payment_url: Joi.string().uri().optional()
-      }).required()
-    }).required(),
-    created_at: Joi.date().iso().optional()
+        title: Joi.string().required()
+      }).required(),
+      user: Joi.object({
+        id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+        name: Joi.string().required(),
+        phone: Joi.string().required(),
+        email: Joi.string().email().optional(),
+        cpf: Joi.string().optional(),
+        affiliateCode: Joi.string().optional(),
+        createdAt: Joi.date().iso().optional()
+      }).required(),
+      pixCode: Joi.string().optional(),
+      quantity: Joi.number().integer().positive().required(),
+      status: Joi.string().valid('expired').required(),
+      price: Joi.number().positive().required(),
+      subtotal: Joi.number().positive().required(),
+      discount: Joi.number().min(0).required(),
+      total: Joi.number().positive().required(),
+      expirationAt: Joi.date().iso().optional(),
+      affiliate: Joi.string().optional(),
+      createdAt: Joi.date().iso().optional(),
+      params: Joi.object().optional()
+    }).required()
   }),
 
   order_paid: Joi.object({
     event: Joi.string().valid('order.paid').required(),
+    timestamp: Joi.date().iso().optional(),
     data: Joi.object({
-      order: Joi.object({
+      id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+      product: Joi.object({
         id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
-        total: Joi.number().positive().required(),
-        customer: Joi.object({
-          name: Joi.string().required(),
-          phone: Joi.string().required(),
-          email: Joi.string().email().optional()
-        }).required(),
-        items: Joi.array().items(
-          Joi.object({
-            name: Joi.string().required(),
-            quantity: Joi.number().integer().positive().required(),
-            price: Joi.number().positive().required()
-          })
-        ).optional(),
-        payment_method: Joi.string().optional(),
-        transaction_id: Joi.string().optional()
-      }).required()
-    }).required(),
-    created_at: Joi.date().iso().optional()
+        title: Joi.string().required()
+      }).required(),
+      user: Joi.object({
+        id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+        name: Joi.string().required(),
+        phone: Joi.string().required(),
+        email: Joi.string().email().optional(),
+        cpf: Joi.string().optional(),
+        affiliateCode: Joi.string().optional(),
+        createdAt: Joi.date().iso().optional()
+      }).required(),
+      pixCode: Joi.string().optional(),
+      quantity: Joi.number().integer().positive().required(),
+      status: Joi.string().valid('paid').required(),
+      price: Joi.number().positive().required(),
+      subtotal: Joi.number().positive().required(),
+      discount: Joi.number().min(0).required(),
+      total: Joi.number().positive().required(),
+      expirationAt: Joi.date().iso().optional(),
+      affiliate: Joi.string().optional(),
+      createdAt: Joi.date().iso().optional(),
+      params: Joi.object().optional()
+    }).required()
   }),
 
   // Schemas antigos (compatibilidade)
