@@ -125,13 +125,18 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
       instance = await getNextAvailableInstance();
     }
     
-    // Formatar número para padrão brasileiro
+    // Formatar número para padrão brasileiro com logs detalhados
+    logger.info(`Original phone number: ${phoneNumber}`);
+    
     let formattedPhone = phoneNumber.replace(/\D/g, '');
+    logger.info(`After removing non-digits: ${formattedPhone}`);
     
     // Adicionar código do país se não tiver
     if (!formattedPhone.startsWith('55')) {
       formattedPhone = '55' + formattedPhone;
     }
+    
+    logger.info(`Final formatted phone: ${formattedPhone}`);
     
     let response;
     
@@ -183,10 +188,14 @@ export const sendMessageWithMedia = async (phoneNumber, message, mediaUrl, insta
       instance = await getNextAvailableInstance();
     }
     
+    logger.info(`Original phone number (media): ${phoneNumber}`);
     let formattedPhone = phoneNumber.replace(/\D/g, '');
+    logger.info(`After removing non-digits (media): ${formattedPhone}`);
+    
     if (!formattedPhone.startsWith('55')) {
       formattedPhone = '55' + formattedPhone;
     }
+    logger.info(`Final formatted phone (media): ${formattedPhone}`);
     
     const response = await instance.client.post('/message/sendMedia/' + instance.name, {
       number: formattedPhone,
