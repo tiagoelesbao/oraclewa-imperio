@@ -176,4 +176,15 @@ router.post('/venda-aprovada',
   handleVendaAprovada
 );
 
+// ENDPOINT DE TESTE SEM AUTENTICAÇÃO - Para debugging
+router.post('/test-order-expired', 
+  validateWebhookData('order_expired'),
+  handleOrderExpired
+);
+
+router.post('/test-order-paid',
+  validateWebhookData('order_paid'),
+  handleOrderPaid
+);
+
 export default router;
