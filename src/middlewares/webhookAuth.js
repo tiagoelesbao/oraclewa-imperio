@@ -13,6 +13,16 @@ export const validateWebhook = (req, res, next) => {
     // Método 1: X-AUTH-WEBHOOK (Sistema Império)
     const authWebhook = req.headers['x-auth-webhook'];
     if (authWebhook) {
+      // LOG DETALHADO PARA DEBUG
+      console.log('🔑 AUTH DEBUG:');
+      console.log('Received:', JSON.stringify(authWebhook));
+      console.log('Expected:', JSON.stringify(webhookSecret));
+      console.log('Length received:', authWebhook.length);
+      console.log('Length expected:', webhookSecret.length);
+      console.log('Match:', authWebhook === webhookSecret);
+      console.log('Received bytes:', Array.from(authWebhook).map(c => c.charCodeAt(0)));
+      console.log('Expected bytes:', Array.from(webhookSecret).map(c => c.charCodeAt(0)));
+      
       if (authWebhook === webhookSecret) {
         logger.info('Webhook authenticated via X-AUTH-WEBHOOK');
         return next();
