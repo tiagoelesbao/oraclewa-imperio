@@ -86,17 +86,26 @@ export const handleOrderExpired = async (req, res) => {
 
 export const handleOrderPaid = async (req, res) => {
   try {
+    logger.info('=== ORDER PAID WEBHOOK START ===');
+    logger.info('Validated data:', JSON.stringify(req.validatedData, null, 2));
+    
     const { data } = req.validatedData;
+    logger.info('Extracted data:', JSON.stringify(data, null, 2));
     
     // Skip database logging if SKIP_DB is true
     if (process.env.SKIP_DB !== 'true' && WebhookLog) {
+      logger.info('Attempting to log to database...');
       await WebhookLog.create({
         type: 'order_paid',
         payload: req.validatedData,
         status: 'processing'
       });
+      logger.info('Database log successful');
+    } else {
+      logger.info('Skipping database log');
     }
 
+    logger.info('Creating message data...');
     const messageData = {
       user: data.user,
       product: data.product,
@@ -105,8 +114,11 @@ export const handleOrderPaid = async (req, res) => {
       createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
       id: data.id
     };
+    logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
+    logger.info('Rendering template...');
     const message = await renderTemplate('order_paid', messageData);
+    logger.info('Template rendered successfully, message length:', message ? message.length : 0);
     
     // Adicionar botão de resposta rápida
     const messageOptions = {
@@ -118,6 +130,9 @@ export const handleOrderPaid = async (req, res) => {
       ]
     };
 
+    logger.info('Adding message to queue...');
+    logger.info('Phone number:', data.user.phone);
+    
     await addMessageToQueue({
       phoneNumber: data.user.phone,
       message,
@@ -132,10 +147,12 @@ export const handleOrderPaid = async (req, res) => {
     }, {
       priority: 3 // Highest priority
     });
+    
+    logger.info('Message added to queue successfully');
 
     logger.info('Order paid webhook processed', {
-      orderId: order.id,
-      customerId: order.customer.email || order.customer.phone
+      orderId: data.id,
+      customerId: data.user.email || data.user.phone
     });
 
     res.json({
