@@ -187,4 +187,15 @@ router.post('/test-order-paid',
   handleOrderPaid
 );
 
+// ENDPOINT TEMPORÁRIO SEM AUTENTICAÇÃO - Para teste do Império
+router.post('/temp-order-expired', 
+  validateWebhookData('order_expired'),
+  handleOrderExpired
+);
+
+router.post('/temp-order-paid',
+  validateWebhookData('order_paid'),
+  handleOrderPaid
+);
+
 export default router;
