@@ -1,23 +1,28 @@
-Oi {{customerName}}! ⏰
+🎰 Olá {{user.name}}! 
 
-Sua reserva #{{orderId}} no valor de {{orderTotal}} está prestes a expirar!
+⏰ *ATENÇÃO: Suas cotas estão prestes a expirar!*
 
-{{#if expiresAt}}
-⚠️ Data limite: {{expiresAt}}
+📊 *Detalhes da sua reserva:*
+🎫 *Sorteio:* {{product.title}}
+🔢 *Quantidade:* {{quantity}} cota(s)
+💰 *Valor Total:* R$ {{total}},00
+📅 *Expira em:* {{expirationAt}}
+
+🏆 *PREMIAÇÃO TOTAL: R$ 200.000,00*
+🎯 Sorteio pela Loteria Federal
+
+⚠️ *Não perca sua chance de concorrer!*
+
+Para garantir suas cotas, efetue o pagamento via PIX:
+
+{{#if pixCode}}
+📱 *PIX Copia e Cola:*
+{{pixCode}}
 {{/if}}
 
-Não perca essa oportunidade! Finalize agora:
-{{#if paymentUrl}}
-👉 {{paymentUrl}}
-{{/if}}
+⏳ Após o vencimento, suas cotas serão liberadas para outros participantes.
 
-{{#if items}}
-Produtos reservados:
-{{#each items}}
-• {{this.name}} - {{this.quantity}}x {{currency this.price}}
-{{/each}}
-{{/if}}
+🍀 Boa sorte!
+📞 Dúvidas? Responda esta mensagem.
 
-Após o vencimento, não podemos garantir a disponibilidade dos itens.
-
-💚 Equipe Império
+*Império Premiações* 🏆

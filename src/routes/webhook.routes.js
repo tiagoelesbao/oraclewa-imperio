@@ -11,6 +11,21 @@ import { validateWebhookData } from '../middlewares/validation.js';
 
 const router = Router();
 
+// Debug endpoint - mostra dados recebidos
+router.post('/debug', (req, res) => {
+  console.log('=== WEBHOOK DEBUG ===');
+  console.log('Headers:', req.headers);
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  console.log('===================');
+  
+  res.json({
+    message: 'Debug data logged - check server logs',
+    headers: req.headers,
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Novos endpoints para o sistema Império
 router.post('/order-expired', 
   validateWebhook,
