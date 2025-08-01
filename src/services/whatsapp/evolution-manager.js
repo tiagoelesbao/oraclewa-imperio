@@ -86,7 +86,7 @@ const resetMessageCounts = () => {
 };
 
 export const getNextAvailableInstance = async () => {
-  const redis = getRedisClient();
+  const redis = process.env.SKIP_DB !== 'true' ? getRedisClient() : null;
   const rateLimit = parseInt(process.env.RATE_LIMIT_PER_INSTANCE || '500');
   
   let attempts = 0;
@@ -98,7 +98,10 @@ export const getNextAvailableInstance = async () => {
       instance.messageCount++;
       instance.lastMessageTime = new Date();
       
-      await redis.hincrby('instance_stats', instance.name, 1);
+      // Only update Redis stats if available
+      if (process.env.SKIP_DB !== 'true' && redis) {
+        await redis.hincrby('instance_stats', instance.name, 1);
+      }
       
       return instance;
     }
