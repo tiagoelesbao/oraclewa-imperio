@@ -26,6 +26,26 @@ router.post('/debug', (req, res) => {
   });
 });
 
+// Debug específico para order-expired
+router.post('/debug-expired', (req, res) => {
+  console.log('=== DEBUG ORDER EXPIRED ===');
+  console.log('All Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('X-AUTH-WEBHOOK:', req.headers['x-auth-webhook']);
+  console.log('Expected Secret:', process.env.WEBHOOK_SECRET);
+  console.log('Match:', req.headers['x-auth-webhook'] === process.env.WEBHOOK_SECRET);
+  console.log('Body Event:', req.body?.event);
+  console.log('========================');
+  
+  res.json({
+    success: true,
+    authHeader: req.headers['x-auth-webhook'],
+    expectedSecret: process.env.WEBHOOK_SECRET ? 'SET' : 'NOT_SET',
+    match: req.headers['x-auth-webhook'] === process.env.WEBHOOK_SECRET,
+    event: req.body?.event,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // RAW CAPTURE - SEM AUTENTICAÇÃO E SEM VALIDAÇÃO
 router.post('/raw-capture', (req, res) => {
   console.log('=== RAW WEBHOOK CAPTURE ===');
