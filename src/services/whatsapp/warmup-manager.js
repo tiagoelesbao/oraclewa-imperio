@@ -89,11 +89,30 @@ export class WhatsAppWarmupManager {
       return false;
     }
     
+    // Verificar se precisa de pausa após mensagens consecutivas
+    const pauseKey = `needs_pause:${instanceName}`;
+    const needsPause = await this.redis.get(pauseKey);
+    
+    if (needsPause) {
+      const pauseTime = Date.now() - parseInt(needsPause);
+      const PAUSE_DURATION = 300000; // 5 minutos
+      
+      if (pauseTime < PAUSE_DURATION) {
+        const remainingPause = Math.ceil((PAUSE_DURATION - pauseTime) / 60000);
+        logger.warn(`⏸️ Pausa após mensagens consecutivas: aguardando ${remainingPause} minutos`);
+        return false;
+      } else {
+        // Pausa concluída, remover flag
+        await this.redis.del(pauseKey);
+        logger.info(`✅ Pausa concluída para ${instanceName}, retomando envios`);
+      }
+    }
+    
     return true;
   }
 
   /**
-   * Registra envio de mensagem
+   * Registra envio de mensagem + controle de consecutivas
    */
   async recordMessageSent(instanceName) {
     if (!this.redis) return;
@@ -109,6 +128,25 @@ export class WhatsAppWarmupManager {
     const hourlyKey = `hourly_count:${instanceName}:${now.toISOString().slice(0, 13)}`;
     await this.redis.incr(hourlyKey);
     await this.redis.expire(hourlyKey, 3600); // Expirar em 1h
+    
+    // CONTROLE DE MENSAGENS CONSECUTIVAS
+    const consecutiveKey = `consecutive:${instanceName}`;
+    const consecutiveCount = await this.redis.incr(consecutiveKey);
+    await this.redis.expire(consecutiveKey, 1800); // Expira em 30 min
+    
+    logger.info(`📊 Mensagem ${consecutiveCount} consecutiva para ${instanceName}`);
+    
+    // Se atingir 5 mensagens consecutivas, marcar para pausa
+    if (consecutiveCount >= 5) {
+      const pauseKey = `needs_pause:${instanceName}`;
+      await this.redis.set(pauseKey, Date.now().toString());
+      await this.redis.expire(pauseKey, 1800); // 30 min
+      
+      logger.warn(`🛑 ${instanceName} precisa de pausa após ${consecutiveCount} mensagens consecutivas`);
+      
+      // Reset contador para próximo ciclo
+      await this.redis.del(consecutiveKey);
+    }
     
     // Registrar última mensagem enviada
     await this.redis.set(`last_message:${instanceName}`, Date.now().toString());

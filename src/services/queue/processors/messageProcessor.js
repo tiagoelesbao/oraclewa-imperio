@@ -1,15 +1,28 @@
 import logger from '../../../utils/logger.js';
 import { sendMessage } from '../../whatsapp/evolution-manager.js';
+import TypingSimulator from '../../whatsapp/typing-simulator.js';
 
 export const processMessage = async (job) => {
   const { phoneNumber, message, messageOptions, type, customerId, metadata } = job.data;
   
   try {
-    logger.info(`Processing message job ${job.id}`, {
+    logger.info(`🤖 Processing message with HUMAN SIMULATION`, {
       type,
       phoneNumber: phoneNumber.slice(0, -4) + '****',
+      messageLength: message.length,
       hasButtons: !!(messageOptions?.buttons || messageOptions?.replyButtons)
     });
+    
+    // SIMULAÇÃO DE COMPORTAMENTO HUMANO
+    const isTemplate = TypingSimulator.isTemplateMessage(message);
+    const shouldSimulate = process.env.DISABLE_TYPING_SIMULATION !== 'true';
+    
+    if (shouldSimulate) {
+      logger.info(`✍️ Iniciando simulação de digitação humana...`);
+      await TypingSimulator.simulateTyping(message, phoneNumber);
+    } else {
+      logger.info(`⚡ Simulação desabilitada - enviando diretamente`);
+    }
     
     let result;
     
