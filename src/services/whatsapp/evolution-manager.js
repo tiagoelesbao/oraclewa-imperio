@@ -11,8 +11,8 @@ export const initializeWhatsAppInstances = async () => {
     const evolutionUrl = process.env.EVOLUTION_API_URL;
     const evolutionApiKey = process.env.EVOLUTION_API_KEY;
     
-    // Nomes das instâncias conforme criadas no Evolution
-    const instanceNames = ['imperio1', 'imperio2', 'imperio3'];
+    // Nomes das instâncias conforme criadas no Evolution (apenas as válidas)
+    const instanceNames = ['imperio1', 'imperio3'];
     
     // Cliente axios único para Evolution API
     const evolutionClient = axios.create({
