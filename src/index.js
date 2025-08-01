@@ -46,11 +46,19 @@ app.use(errorHandler);
 
 async function startServer() {
   try {
-    await connectDatabase();
-    logger.info('Database connected successfully');
+    if (process.env.SKIP_DB !== 'true') {
+      await connectDatabase();
+      logger.info('Database connected successfully');
+    } else {
+      logger.info('Skipping database connection (SKIP_DB=true)');
+    }
 
-    await initializeRedis();
-    logger.info('Redis connected successfully');
+    if (process.env.SKIP_DB !== 'true') {
+      await initializeRedis();
+      logger.info('Redis connected successfully');
+    } else {
+      logger.info('Skipping Redis connection (SKIP_DB=true)');
+    }
 
     await initializeQueues();
     logger.info('Message queues initialized');
