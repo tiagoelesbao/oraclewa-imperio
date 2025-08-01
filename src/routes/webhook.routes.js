@@ -45,6 +45,72 @@ router.post('/raw-capture', (req, res) => {
   });
 });
 
+// WEBHOOK STATUS MONITOR - Endpoint para ver atividade recente
+const recentWebhooks = [];
+const MAX_RECENT_WEBHOOKS = 50;
+
+router.get('/status', (req, res) => {
+  res.json({
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    recentWebhooks: recentWebhooks.slice(-10), // Últimos 10
+    totalProcessed: recentWebhooks.length,
+    systemInfo: {
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      pid: process.pid
+    }
+  });
+});
+
+// Middleware para capturar todos os webhooks
+router.use((req, res, next) => {
+  if (req.method === 'POST' && req.path.includes('/webhook/')) {
+    const webhookInfo = {
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      path: req.path,
+      userAgent: req.get('User-Agent'),
+      contentLength: req.get('Content-Length'),
+      event: req.body?.event || 'unknown',
+      userId: req.body?.data?.user?.id || 'unknown',
+      userName: req.body?.data?.user?.name || 'unknown',
+      phone: req.body?.data?.user?.phone || 'unknown',
+      total: req.body?.data?.total || 0,
+      status: 'processing'
+    };
+    
+    recentWebhooks.push(webhookInfo);
+    
+    // Manter apenas os últimos N webhooks
+    if (recentWebhooks.length > MAX_RECENT_WEBHOOKS) {
+      recentWebhooks.shift();
+    }
+    
+    console.log('📥 WEBHOOK RECEIVED:', JSON.stringify(webhookInfo, null, 2));
+    
+    // Interceptar response para capturar status final
+    const originalSend = res.send;
+    res.send = function(data) {
+      webhookInfo.status = res.statusCode >= 200 && res.statusCode < 300 ? 'success' : 'error';
+      webhookInfo.responseStatus = res.statusCode;
+      webhookInfo.processedAt = new Date().toISOString();
+      
+      console.log('📤 WEBHOOK PROCESSED:', JSON.stringify({
+        path: webhookInfo.path,
+        event: webhookInfo.event,
+        status: webhookInfo.status,
+        responseStatus: webhookInfo.responseStatus,
+        userName: webhookInfo.userName,
+        phone: webhookInfo.phone
+      }, null, 2));
+      
+      return originalSend.call(this, data);
+    };
+  }
+  next();
+});
+
 // Endpoint de teste simples para formatação de número
 router.post('/test-format', (req, res) => {
   try {
