@@ -26,6 +26,25 @@ router.post('/debug', (req, res) => {
   });
 });
 
+// RAW CAPTURE - SEM AUTENTICAÇÃO E SEM VALIDAÇÃO
+router.post('/raw-capture', (req, res) => {
+  console.log('=== RAW WEBHOOK CAPTURE ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Raw Body:', JSON.stringify(req.body, null, 2));
+  console.log('Query Params:', JSON.stringify(req.query, null, 2));
+  console.log('========================');
+  
+  res.json({ 
+    success: true, 
+    message: 'Raw webhook captured successfully',
+    timestamp: new Date().toISOString(),
+    headers: req.headers,
+    body: req.body,
+    query: req.query
+  });
+});
+
 // Endpoint de teste simples para formatação de número
 router.post('/test-format', (req, res) => {
   try {
