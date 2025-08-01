@@ -11,17 +11,26 @@ if (process.env.SKIP_DB !== 'true') {
 // Novos handlers para o sistema Império
 export const handleOrderExpired = async (req, res) => {
   try {
+    logger.info('=== ORDER EXPIRED WEBHOOK START ===');
+    logger.info('Validated data:', JSON.stringify(req.validatedData, null, 2));
+    
     const { data } = req.validatedData;
+    logger.info('Extracted data:', JSON.stringify(data, null, 2));
     
     // Skip database logging if SKIP_DB is true
     if (process.env.SKIP_DB !== 'true' && WebhookLog) {
+      logger.info('Attempting to log to database...');
       await WebhookLog.create({
         type: 'order_expired',
         payload: req.validatedData,
         status: 'processing'
       });
+      logger.info('Database log successful');
+    } else {
+      logger.info('Skipping database log');
     }
 
+    logger.info('Creating message data...');
     const messageData = {
       user: data.user,
       product: data.product,
@@ -32,8 +41,11 @@ export const handleOrderExpired = async (req, res) => {
       affiliate: data.affiliate || 'A0RJJ5L1QK',
       id: data.id
     };
+    logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
+    logger.info('Rendering template...');
     const message = await renderTemplate('order_expired', messageData);
+    logger.info('Template rendered successfully, message length:', message ? message.length : 0);
     
     // Adicionar suporte para botões
     const messageOptions = {
@@ -50,6 +62,9 @@ export const handleOrderExpired = async (req, res) => {
       ]
     };
 
+    logger.info('Adding message to queue...');
+    logger.info('Phone number:', data.user.phone);
+    
     await addMessageToQueue({
       phoneNumber: data.user.phone,
       message,
@@ -66,10 +81,12 @@ export const handleOrderExpired = async (req, res) => {
       priority: 2,
       delay: 60000 // 1 minute delay
     });
+    
+    logger.info('Message added to queue successfully');
 
     logger.info('Order expired webhook processed', {
-      orderId: order.id,
-      customerId: order.customer.email || order.customer.phone
+      orderId: data.id,
+      customerId: data.user.email || data.user.phone
     });
 
     res.json({

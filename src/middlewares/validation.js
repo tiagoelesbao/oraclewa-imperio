@@ -8,11 +8,11 @@ const webhookSchemas = {
     data: Joi.object({
       id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
       product: Joi.object({
-        id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+        id: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
         title: Joi.string().required()
       }).required(),
       user: Joi.object({
-        id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+        id: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
         name: Joi.string().required(),
         phone: Joi.string().required(),
         email: Joi.string().email().allow('').optional(),
@@ -20,15 +20,15 @@ const webhookSchemas = {
         affiliateCode: Joi.string().allow('').optional(),
         createdAt: Joi.date().iso().optional()
       }).required(),
-      pixCode: Joi.string().optional(),
-      quantity: Joi.number().integer().positive().required(),
-      status: Joi.string().valid('expired').required(),
-      price: Joi.number().positive().required(),
-      subtotal: Joi.number().positive().required(),
-      discount: Joi.number().min(0).required(),
+      pixCode: Joi.string().allow('').optional(),
+      quantity: Joi.number().integer().positive().optional(),
+      status: Joi.string().optional(),
+      price: Joi.number().positive().optional(),
+      subtotal: Joi.number().positive().optional(),
+      discount: Joi.number().min(0).optional(),
       total: Joi.number().positive().required(),
       expirationAt: Joi.date().iso().optional(),
-      affiliate: Joi.string().optional(),
+      affiliate: Joi.string().allow('').optional(),
       createdAt: Joi.date().iso().optional(),
       params: Joi.object().optional()
     }).required()
