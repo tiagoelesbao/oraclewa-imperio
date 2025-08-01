@@ -56,12 +56,13 @@ async function startServer() {
     if (process.env.SKIP_DB !== 'true') {
       await initializeRedis();
       logger.info('Redis connected successfully');
+      
+      await initializeQueues();
+      logger.info('Message queues initialized');
     } else {
       logger.info('Skipping Redis connection (SKIP_DB=true)');
+      logger.info('Skipping message queues (SKIP_DB=true)');
     }
-
-    await initializeQueues();
-    logger.info('Message queues initialized');
 
     await initializeWhatsAppInstances();
     logger.info('WhatsApp instances initialized');

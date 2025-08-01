@@ -42,6 +42,13 @@ export const initializeQueues = async () => {
 
 export const addMessageToQueue = async (messageData, options = {}) => {
   try {
+    // If SKIP_DB is true, process message directly without queue
+    if (process.env.SKIP_DB === 'true') {
+      logger.info('Processing message directly (SKIP_DB=true)');
+      await processMessage({ data: messageData });
+      return { id: 'direct-' + Date.now() };
+    }
+    
     const defaultOptions = {
       removeOnComplete: true,
       removeOnFail: false,
