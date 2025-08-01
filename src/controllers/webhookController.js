@@ -15,27 +15,45 @@ export const handleOrderExpired = async (req, res) => {
       status: 'processing'
     });
 
-    const message = await renderTemplate('order_expired', {
-      customerName: order.customer.name.split(' ')[0],
-      orderId: order.id,
-      orderTotal: order.total.toLocaleString('pt-BR', { 
-        style: 'currency', 
-        currency: 'BRL' 
-      }),
-      paymentUrl: order.payment_url,
-      items: order.items || [],
-      expiresAt: order.expires_at ? new Date(order.expires_at).toLocaleDateString('pt-BR') : null
-    });
+    const messageData = {
+      user: data.user || data,
+      product: data.product || { title: 'Sorteio' },
+      quantity: data.quantity || 1,
+      total: data.total || 0,
+      pixCode: data.pixCode || '',
+      expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
+      affiliate: data.affiliate || 'A0RJJ5L1QK',
+      id: data.id
+    };
+    
+    const message = await renderTemplate('order_expired', messageData);
+    
+    // Adicionar suporte para botões
+    const messageOptions = {
+      buttons: [
+        {
+          type: 'copy',
+          copyCode: data.pixCode
+        },
+        {
+          type: 'url',
+          displayText: 'Acessar Site',
+          url: `https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=${data.affiliate || 'A0RJJ5L1QK'}`
+        }
+      ]
+    };
 
     await addMessageToQueue({
-      phoneNumber: order.customer.phone,
+      phoneNumber: data.user?.phone || data.phone,
       message,
+      messageOptions,
       type: 'order_expired',
-      customerId: order.customer.email || order.customer.phone,
+      customerId: data.user?.email || data.user?.phone || data.id,
       metadata: {
-        orderId: order.id,
-        orderTotal: order.total,
-        expiresAt: order.expires_at
+        orderId: data.id,
+        orderTotal: data.total,
+        expiresAt: data.expirationAt,
+        buttons: messageOptions.buttons
       }
     }, {
       priority: 2,
@@ -70,28 +88,37 @@ export const handleOrderPaid = async (req, res) => {
       status: 'processing'
     });
 
-    const message = await renderTemplate('order_paid', {
-      customerName: order.customer.name.split(' ')[0],
-      orderId: order.id,
-      orderTotal: order.total.toLocaleString('pt-BR', { 
-        style: 'currency', 
-        currency: 'BRL' 
-      }),
-      items: order.items || [],
-      paymentMethod: order.payment_method,
-      transactionId: order.transaction_id
-    });
+    const messageData = {
+      user: data.user || data,
+      product: data.product || { title: 'Sorteio' },
+      quantity: data.quantity || 1,
+      total: data.total || 0,
+      createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+      id: data.id
+    };
+    
+    const message = await renderTemplate('order_paid', messageData);
+    
+    // Adicionar botão de resposta rápida
+    const messageOptions = {
+      replyButtons: [
+        {
+          id: 'confirm_receipt',
+          title: 'Confirmar Recebimento'
+        }
+      ]
+    };
 
     await addMessageToQueue({
-      phoneNumber: order.customer.phone,
+      phoneNumber: data.user?.phone || data.phone,
       message,
+      messageOptions,
       type: 'order_paid',
-      customerId: order.customer.email || order.customer.phone,
+      customerId: data.user?.email || data.user?.phone || data.id,
       metadata: {
-        orderId: order.id,
-        orderTotal: order.total,
-        paymentMethod: order.payment_method,
-        transactionId: order.transaction_id
+        orderId: data.id,
+        orderTotal: data.total,
+        replyButtons: messageOptions.replyButtons
       }
     }, {
       priority: 3 // Highest priority

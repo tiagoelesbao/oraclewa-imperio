@@ -3,15 +3,23 @@ import { sendMessage } from '../../whatsapp/evolution-manager.js';
 import { createMessageLog } from '../../../database/models/MessageLog.js';
 
 export const processMessage = async (job) => {
-  const { phoneNumber, message, type, customerId, metadata } = job.data;
+  const { phoneNumber, message, messageOptions, type, customerId, metadata } = job.data;
   
   try {
     logger.info(`Processing message job ${job.id}`, {
       type,
-      phoneNumber: phoneNumber.slice(0, -4) + '****'
+      phoneNumber: phoneNumber.slice(0, -4) + '****',
+      hasButtons: !!(messageOptions?.buttons || messageOptions?.replyButtons)
     });
     
-    const result = await sendMessage(phoneNumber, message);
+    let result;
+    
+    // Se há botões ou opções especiais, usar função apropriada
+    if (messageOptions?.buttons || messageOptions?.replyButtons) {
+      result = await sendMessage(phoneNumber, message, null, messageOptions);
+    } else {
+      result = await sendMessage(phoneNumber, message);
+    }
     
     await createMessageLog({
       phoneNumber,
@@ -24,7 +32,8 @@ export const processMessage = async (job) => {
       metadata: {
         ...metadata,
         jobId: job.id,
-        attempts: job.attemptsMade
+        attempts: job.attemptsMade,
+        messageOptions
       }
     });
     
@@ -43,7 +52,8 @@ export const processMessage = async (job) => {
       metadata: {
         ...metadata,
         jobId: job.id,
-        attempts: job.attemptsMade
+        attempts: job.attemptsMade,
+        messageOptions
       }
     });
     
