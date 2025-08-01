@@ -13,7 +13,7 @@ export const ORDER_PAID_VARIATIONS = [
 🎰 *Você está concorrendo a R$ 200.000,00!*
 
 📱 *Acompanhe o sorteio:*
-• Data: Próximo sábado
+• Data: Será informada em breve
 • Pelo site da Loteria Federal
 
 🍀 *Boa sorte!*
@@ -31,7 +31,7 @@ export const ORDER_PAID_VARIATIONS = [
 💰 Valor: R$ {{total}}
 
 🎯 *Prêmio: R$ 200.000,00*
-📅 Sorteio: Sábado pela Loteria Federal
+📅 Sorteio: Data será informada em breve
 
 🤞 *Dedos cruzados para você!*
 📞 Dúvidas? Pode me chamar!
