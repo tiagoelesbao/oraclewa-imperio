@@ -1,7 +1,12 @@
 import logger from '../utils/logger.js';
 import { addMessageToQueue } from '../services/queue/manager.js';
 import { renderTemplate } from '../services/templates/renderer.js';
-import WebhookLog from '../database/models/WebhookLog.js';
+
+// Conditional import for WebhookLog
+let WebhookLog;
+if (process.env.SKIP_DB !== 'true') {
+  WebhookLog = (await import('../database/models/WebhookLog.js')).default;
+}
 
 // Novos handlers para o sistema Império
 export const handleOrderExpired = async (req, res) => {
@@ -9,11 +14,14 @@ export const handleOrderExpired = async (req, res) => {
     const { data } = req.validatedData;
     const order = data.order;
     
-    await WebhookLog.create({
-      type: 'order_expired',
-      payload: req.validatedData,
-      status: 'processing'
-    });
+    // Skip database logging if SKIP_DB is true
+    if (process.env.SKIP_DB !== 'true') {
+      await WebhookLog.create({
+        type: 'order_expired',
+        payload: req.validatedData,
+        status: 'processing'
+      });
+    }
 
     const messageData = {
       user: order.customer,
@@ -82,11 +90,14 @@ export const handleOrderPaid = async (req, res) => {
     const { data } = req.validatedData;
     const order = data.order;
     
-    await WebhookLog.create({
-      type: 'order_paid',
-      payload: req.validatedData,
-      status: 'processing'
-    });
+    // Skip database logging if SKIP_DB is true
+    if (process.env.SKIP_DB !== 'true') {
+      await WebhookLog.create({
+        type: 'order_paid',
+        payload: req.validatedData,
+        status: 'processing'
+      });
+    }
 
     const messageData = {
       user: order.customer,
@@ -147,11 +158,14 @@ export const handleCarrinhoAbandonado = async (req, res) => {
   try {
     const { data } = req.validatedData;
     
-    await WebhookLog.create({
-      type: 'carrinho_abandonado',
-      payload: req.validatedData,
-      status: 'processing'
-    });
+    // Skip database logging if SKIP_DB is true
+    if (process.env.SKIP_DB !== 'true') {
+      await WebhookLog.create({
+        type: 'carrinho_abandonado',
+        payload: req.validatedData,
+        status: 'processing'
+      });
+    }
 
     const message = await renderTemplate('carrinho_abandonado', {
       customerName: data.customer.name.split(' ')[0],
@@ -198,11 +212,14 @@ export const handleVendaExpirada = async (req, res) => {
   try {
     const { data } = req.validatedData;
     
-    await WebhookLog.create({
-      type: 'venda_expirada',
-      payload: req.validatedData,
-      status: 'processing'
-    });
+    // Skip database logging if SKIP_DB is true
+    if (process.env.SKIP_DB !== 'true') {
+      await WebhookLog.create({
+        type: 'venda_expirada',
+        payload: req.validatedData,
+        status: 'processing'
+      });
+    }
 
     const message = await renderTemplate('venda_expirada', {
       customerName: data.customer.name.split(' ')[0],
@@ -248,11 +265,14 @@ export const handleVendaAprovada = async (req, res) => {
   try {
     const { data } = req.validatedData;
     
-    await WebhookLog.create({
-      type: 'venda_aprovada',
-      payload: req.validatedData,
-      status: 'processing'
-    });
+    // Skip database logging if SKIP_DB is true
+    if (process.env.SKIP_DB !== 'true') {
+      await WebhookLog.create({
+        type: 'venda_aprovada',
+        payload: req.validatedData,
+        status: 'processing'
+      });
+    }
 
     const message = await renderTemplate('venda_aprovada', {
       customerName: data.customer.name.split(' ')[0],

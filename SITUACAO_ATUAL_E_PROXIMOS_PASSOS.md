@@ -1,223 +1,308 @@
-# 📋 SITUAÇÃO ATUAL - Sistema OracleWA Império
+# 📋 SITUAÇÃO ATUAL DO SISTEMA IMPÉRIO - WhatsApp Automação
 
-**Data:** 30/07/2025 22:45  
-**Status:** ✅ WhatsApp API funcionando no servidor Hetzner
-
----
-
-## 🎯 O QUE JÁ FOI FEITO:
-
-### ✅ 1. SERVIDOR HETZNER CONFIGURADO
-- **VPS Hetzner CX22** contratada e ativa
-- **IP:** 128.140.7.154
-- **Usuário:** root
-- **Senha:** KtwppRMpJfi3
-- **Sistema:** Ubuntu 24.04.2 LTS
-- **Node.js 20** instalado
-
-### ✅ 2. WHATSAPP API FUNCIONANDO
-- **API WhatsApp customizada** criada com Baileys
-- **Porta:** 8080 (firewall liberado)
-- **API Key:** Imperio2024@EvolutionSecure
-- **Localização:** /opt/whatsapp-imperio/
-- **Health Check:** http://128.140.7.154:8080/health ✅ OK
-- **Status:** {"status":"ok","instances":0}
-
-### ✅ 3. CÓDIGO SISTEMA PRINCIPAL
-- **Repositório GitHub:** tiagoelesbao/oraclewa-imperio
-- **Código adaptado** para usar WhatsApp API própria
-- **Variáveis de produção** configuradas
-- **Manager Evolution** criado
+## 📅 Data: 01/08/2025 - 00:11h
 
 ---
 
-## 📍 SITUAÇÃO ATUAL - ONDE PAROU:
+## ✅ **COMPONENTES FUNCIONANDO**
 
-**✅ API WhatsApp rodando com sucesso no servidor**  
-**⏸️ Pronto para criar as 4 instâncias WhatsApp**  
-**⏸️ Falta configurar Railway**  
-**⏸️ Falta conectar WhatsApp via QR Code**
+### 🟢 **Evolution API (Hetzner VPS)**
+- **Status**: ✅ Operacional
+- **Servidor**: 128.140.7.154:8080
+- **Instâncias Conectadas**: 3/3
+  - `imperio1` - Owner: 5511941769494 - Status: open
+  - `imperio2` - Owner: 5511975623976 - Status: open  
+  - `imperio3` - Owner: 5511982661537 - Status: open
+- **Versão**: v1.7.1
+- **Docker**: Rodando normalmente
+- **Teste Manual**: ✅ Mensagem enviada e recebida com sucesso
+
+### 🟢 **Railway (Aplicação Principal)**
+- **Status**: ✅ Deployado e Online
+- **URL**: https://oraclewa-imperio-production.up.railway.app
+- **Health Check**: ✅ Respondendo
+- **Último Deploy**: 6ab7883 - Fix Evolution API integration
+- **Uptime**: ~13 minutos
+
+### 🟢 **Código Corrigido**
+- ✅ Nomes das instâncias: `imperio1`, `imperio2`, `imperio3`
+- ✅ Formato Evolution API: `textMessage: { text: "..." }`
+- ✅ Formatação de números: sem `@s.whatsapp.net`
+- ✅ Templates customizados para loteria
+- ✅ Estrutura de webhooks implementada
 
 ---
 
-## 🌅 AMANHÃ - COMO CONTINUAR:
+## ❌ **PROBLEMA IDENTIFICADO**
 
-### 📱 1. CONECTAR AO SERVIDOR (PRIMEIRO)
+### 🔴 **Webhooks Configurados MAS Não Funcionando**
+- **Sintoma 1**: Pedidos expirados não geram mensagem automática
+- **Sintoma 2**: Pedidos pagos (status "Pago") não geram mensagem de confirmação
+- **Evidência**: Print do painel mostra pedidos com status "Pago" e "Expirado" sem automação
+- **Logs Evolution**: Apenas verificação de status (connectionState)
+- **Logs Railway**: Sem registros de webhooks recebidos
 
-**No Windows, abra PowerShell:**
-```powershell
-ssh root@128.140.7.154
-```
-**Senha:** `KtwppRMpJfi3`
+### ✅ **WEBHOOKS ESTÃO CONFIGURADOS CORRETAMENTE:**
+- **URL 1**: `https://oraclewa-imperio-production.up.railway.app/api/webhook/order-paid`
+- **URL 2**: `https://oraclewa-imperio-production.up.railway.app/api/webhook/order-expired`
+- **Authorization**: `1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630`
+- **Método**: POST ✅
+- **Eventos**: order.paid ✅ e order.expired ✅
 
-### 🔄 2. INICIAR A API WHATSAPP
+### 🔍 **CAUSA RAIZ PROVÁVEL:**
+- **WEBHOOK_SECRET** no Railway pode estar diferente do Authorization configurado no painel
+- Ou há erro na **validação/processamento** no código Railway
 
+### 📊 **Pedidos Observados no Painel (01/08/2025 00:15):**
+- **Isabel**: Status "Pago" - Sem mensagem de confirmação enviada
+- **Leonardo**: Status "Pago" - Sem mensagem de confirmação enviada  
+- **Geovanna**: Status "Pago" - Sem mensagem de confirmação enviada
+- **Tiago**: Status "Expirado" - Sem mensagem de recuperação enviada
+
+---
+
+## 🔍 **COMANDOS ÚTEIS PARA AMANHÃ**
+
+### **Acessar Servidor Hetzner:**
 ```bash
-# Ir para diretório
+ssh root@128.140.7.154
 cd /opt/whatsapp-imperio
-
-# Iniciar servidor (deixar rodando)
-node index.js
 ```
 
-**Quando aparecer:** "WhatsApp API rodando na porta 8080" ✅
+### **Verificar Evolution API:**
+```bash
+# Ver logs da Evolution API
+docker logs evolution-api-main -f
 
-### 📱 3. CRIAR AS 4 INSTÂNCIAS WHATSAPP
+# Verificar instâncias
+curl -X GET http://128.140.7.154:8080/instance/fetchInstances \
+-H "apikey: Imperio2024@EvolutionSecure"
 
-**Abra OUTRO PowerShell:**
-```powershell
+# Testar envio manual
+curl -X POST http://128.140.7.154:8080/message/sendText/imperio1 \
+-H "Content-Type: application/json" \
+-H "apikey: Imperio2024@EvolutionSecure" \
+-d '{
+  "number": "5511959761948",
+  "textMessage": {
+    "text": "Teste manual do sistema"
+  }
+}'
+```
+
+### **Verificar Railway:**
+```bash
+# Health check
+curl https://oraclewa-imperio-production.up.railway.app/health
+
+# Debug webhook
+curl -X POST https://oraclewa-imperio-production.up.railway.app/api/webhook/debug \
+-H "Content-Type: application/json" \
+-d '{"test": "sistema funcionando"}'
+```
+
+### **Monitorar Logs Railway:**
+1. Acessar: https://railway.app/
+2. Projeto: oraclewa-imperio
+3. Aba: Deployments > View logs
+
+---
+
+## 🎯 **PRÓXIMOS PASSOS PARA AMANHÃ**
+
+### **1. VERIFICAR WEBHOOK_SECRET NO RAILWAY** ⚡ (PRIORIDADE ALTA)
+- [ ] Acessar: https://railway.app/project/oraclewa-imperio
+- [ ] Ir em Variables/Environment Variables
+- [ ] Verificar se WEBHOOK_SECRET = `1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630`
+- [ ] Se estiver diferente, CORRIGIR para esse valor exato
+
+### **✅ WEBHOOKS JÁ CONFIGURADOS NO PAINEL:**
+**Webhook 1 - Pedidos Pagos:** ✅ CONFIGURADO
+- URL: `https://oraclewa-imperio-production.up.railway.app/api/webhook/order-paid`
+- Authorization: `1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630`
+- Evento: `order.paid` ✅
+
+**Webhook 2 - Pedidos Expirados:** ✅ CONFIGURADO  
+- URL: `https://oraclewa-imperio-production.up.railway.app/api/webhook/order-expired`
+- Authorization: `1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630`
+- Evento: `order.expired` ✅
+
+### **2. TESTAR WEBHOOK COM SECRET CORRETO** ⚡ (PRIORIDADE ALTA)
+```bash
+# Testar com o secret que está no painel (descoberto!)
+curl -X POST https://oraclewa-imperio-production.up.railway.app/api/webhook/order-expired \
+-H "Content-Type: application/json" \
+-H "X-AUTH-WEBHOOK: 1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630" \
+-d '{
+  "event": "order.expired", 
+  "data": {"id": "TEST", "user": {"name": "Teste", "phone": "5511959761948"}}
+}'
+```
+
+### **3. SIMULAR WEBHOOKS PARA TESTE**
+
+**Teste 1 - Pedido Expirado:**
+```bash
+curl -X POST https://oraclewa-imperio-production.up.railway.app/api/webhook/order-expired \
+-H "Content-Type: application/json" \
+-H "X-AUTH-WEBHOOK: 1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630" \
+-d '{
+  "event": "order.expired",
+  "data": {
+    "id": "TEST_EXPIRED_123", 
+    "user": {
+      "name": "Tiago Teste",
+      "phone": "5511959761948"
+    },
+    "product": {"title": "Rapidinha R$ 200.000,00"},
+    "quantity": 50,
+    "total": 10,
+    "pixCode": "00020126580014BR.GOV.BCB.PIX013636401b-4a3e-4b89-9c8d-62ac3e145c315204000053039865802BR5922IMPERIO",
+    "affiliate": "A0RJJ5L1QK"
+  }
+}'
+```
+
+**Teste 2 - Pedido Pago:**
+```bash
+curl -X POST https://oraclewa-imperio-production.up.railway.app/api/webhook/order-paid \
+-H "Content-Type: application/json" \
+-H "X-AUTH-WEBHOOK: 1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630" \
+-d '{
+  "event": "order.paid",
+  "data": {
+    "id": "TEST_PAID_456",
+    "user": {
+      "name": "Isabel Teste", 
+      "phone": "5511959761948"
+    },
+    "product": {"title": "Rapidinha R$ 200.000,00"},
+    "quantity": 50,
+    "total": 10,
+    "createdAt": "2025-08-01T00:15:00Z"
+  }
+}'
+```
+
+### **4. MONITORAMENTO EM TEMPO REAL**
+```bash
+# Terminal 1: Logs Evolution API
 ssh root@128.140.7.154
+
+
+# Terminal 2: Logs Railway (via web interface)
+# Terminal 3: Testes manuais
 ```
 
-**Execute:**
-```bash
-# Criar as 4 instâncias
-for i in {1..4}; do
-  curl -X POST http://localhost:8080/instance/create \
-    -H "apikey: Imperio2024@EvolutionSecure" \
-    -H "Content-Type: application/json" \
-    -d "{\"instanceName\": \"imperio_$i\"}"
-  echo ""
-  sleep 2
-done
+---
+
+## 📊 **ARQUITETURA ATUAL**
+
+```
+┌─────────────────┐    webhook    ┌──────────────────┐    API    ┌─────────────────┐
+│   Painel        │─────────────→ │    Railway       │─────────→ │   Evolution     │
+│   Império       │               │  (Processamento) │           │   API (Hetzner) │
+│                 │               │                  │           │                 │
+└─────────────────┘               └──────────────────┘           └─────────────────┘
+                                           │                              │
+                                           │                              │
+                                           ▼                              ▼
+                                  ┌──────────────────┐           ┌─────────────────┐
+                                  │    Templates     │           │   WhatsApp      │
+                                  │   & Message      │           │   (3 numbers)   │
+                                  │    Queue         │           │                 │
+                                  └──────────────────┘           └─────────────────┘
 ```
 
-### 📱 4. OBTER QR CODES
+---
 
-```bash
-# Para cada instância, obter QR Code
-curl -H "apikey: Imperio2024@EvolutionSecure" \
-  http://localhost:8080/instance/qr/imperio_1
+## 🚨 **POSSÍVEIS PROBLEMAS E SOLUÇÕES**
 
-curl -H "apikey: Imperio2024@EvolutionSecure" \
-  http://localhost:8080/instance/qr/imperio_2
+### **Problema 1: Secret Incorreto**
+- **Solução**: Verificar variáveis do Railway ou painel Império
+- **Como testar**: Usar endpoint debug sem autenticação primeiro
 
-curl -H "apikey: Imperio2024@EvolutionSecure" \
-  http://localhost:8080/instance/qr/imperio_3
+### **Problema 2: URL do Webhook Incorreta no Painel**
+- **Solução**: Verificar se está apontando para Railway (não Hetzner)
+- **URL Correta**: `https://oraclewa-imperio-production.up.railway.app/api/webhook/order-expired`
 
-curl -H "apikey: Imperio2024@EvolutionSecure" \
-  http://localhost:8080/instance/qr/imperio_4
+### **Problema 3: Estrutura do Payload Diferente**
+- **Solução**: Usar webhook debug para ver formato real dos dados
+- **Testar**: Simular com dados reais do painel
+
+---
+
+## 📋 **CHECKLIST PARA AMANHÃ**
+
+- [ ] **08:00** - Verificar se sistemas estão online (Evolution + Railway)
+- [ ] **08:05** - Verificar WEBHOOK_SECRET no Railway = `1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630`
+- [ ] **08:10** - Testar webhook order-expired manualmente (comando pronto)
+- [ ] **08:15** - Testar webhook order-paid manualmente (comando pronto)
+- [ ] **08:20** - Verificar logs Railway para ver se chegaram as requisições
+- [ ] **08:25** - Se chegaram mas não enviaram: debugar código/queue
+- [ ] **08:30** - Se não chegaram: verificar autorização/validação
+- [ ] **08:45** - Fazer teste com pedido real no painel
+- [ ] **09:00** - Validar mensagens chegaram no WhatsApp
+- [ ] **09:15** - Sistema 100% funcional!
+
+---
+
+## 🔧 **CONFIGURAÇÕES IMPORTANTES**
+
+### **Railway Environment Variables:**
 ```
-
-### 📱 5. ESCANEAR QR CODES
-
-Para cada QR Code retornado:
-1. Copie o código base64 (após "data:image/png;base64,")
-2. Cole em: https://base64.guru/converter/decode/image
-3. Escaneie com WhatsApp dos 4 números
-
-### 🚀 6. CONFIGURAR RAILWAY
-
-**No navegador, vá para:** https://railway.app
-
-**Configure estas variáveis no projeto oraclewa-imperio:**
-
-```env
-# WhatsApp API
 EVOLUTION_API_URL=http://128.140.7.154:8080
 EVOLUTION_API_KEY=Imperio2024@EvolutionSecure
-
-# Database (Railway fornece automaticamente)
-DATABASE_URL=${DATABASE_URL}
-
-# Redis (Railway fornece automaticamente)
-REDIS_URL=${REDIS_URL}
-
-# Webhooks
-WEBHOOK_SECRET=1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630
-JWT_SECRET=821c79a12ae3d39559406040127beb33a27bbe185fd3e3ba7dd340a5177bdeb6
-
-# App Config
+WEBHOOK_SECRET=[DESCOBRIR_O_CORRETO]
+SKIP_DB=true
+APP_PORT=3000
 NODE_ENV=production
-RATE_LIMIT_PER_INSTANCE=500
-LOG_LEVEL=info
 ```
 
-### 🔗 7. CONECTAR RAILWAY AO GITHUB
-
-1. No Railway → Settings
-2. Connect GitHub repository
-3. Selecionar: `tiagoelesbao/oraclewa-imperio`
-4. Deploy automático iniciará
-
-### 🎯 8. CONFIGURAR WEBHOOKS NO PAINEL IMPÉRIO
-
-**URLs para configurar:**
-- **Webhook 1:** https://oraclewa-imperio-production.up.railway.app/api/webhook/order-expired
-- **Webhook 2:** https://oraclewa-imperio-production.up.railway.app/api/webhook/order-paid
-- **Authorization:** 1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630
-- **Eventos:** ✅ order.expired, ✅ order.paid
-
----
-
-## 🔧 COMANDOS ÚTEIS PARA AMANHÃ:
-
-### Verificar se API está rodando:
-```bash
-curl http://128.140.7.154:8080/health
+### **Evolution API Config:**
 ```
-
-### Ver logs da API:
-```bash
-# No terminal onde está rodando, ver saída em tempo real
-```
-
-### Testar envio de mensagem:
-```bash
-curl -X POST http://localhost:8080/send \
-  -H "apikey: Imperio2024@EvolutionSecure" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "instanceName": "imperio_1",
-    "number": "5511999999999",
-    "message": "Teste do sistema OracleWA!"
-  }'
-```
-
-### Reiniciar servidor se necessário:
-```bash
-# Parar: Ctrl+C
-# Iniciar: node index.js
+Base URL: http://128.140.7.154:8080
+API Key: Imperio2024@EvolutionSecure
+Instances: imperio1, imperio2, imperio3
 ```
 
 ---
 
-## 📊 INFORMAÇÕES IMPORTANTES:
+## 📞 **CONTATOS DE EMERGÊNCIA**
 
-### 🖥️ Servidor Hetzner:
-- **IP:** 128.140.7.154
-- **Custo:** €5.22/mês (~R$30)
-- **Specs:** 2 vCPU, 4GB RAM, 40GB SSD
-
-### 🔑 Credenciais:
-- **SSH:** root@128.140.7.154 (senha: KtwppRMpJfi3)
-- **API Key:** Imperio2024@EvolutionSecure
-- **Webhook Secret:** 1bee33900e61bd1a5c3e7670fe5da0ed5e97a60c2a52cd7ce562f5ffb3d87630
-
-### 📂 Diretórios importantes:
-- **API WhatsApp:** /opt/whatsapp-imperio/
-- **Código principal:** /mnt/c/Users/Pichau/Desktop/Sistemas/OracleWA/Clientes/Império/recuperacao_expirados/oraclewa/
+- **Hetzner VPS**: 128.140.7.154
+- **Railway**: https://railway.app/project/oraclewa-imperio
+- **GitHub**: https://github.com/tiagoelesbao/oraclewa-imperio
 
 ---
 
-## ⚡ PRÓXIMO PASSO CRÍTICO:
+## 🔍 **LOGS EVOLUTION API (ÚLTIMOS)**
 
-**CRIAR AS 4 INSTÂNCIAS E CONECTAR OS WHATSAPPS**
+```
+[Evolution API] v1.7.1 - Fri Aug 01 2025 00:02:16 VERBOSE
+- Message update: remoteJid: '5511959761948:58@s.whatsapp.net'
+- Status: 'DELIVERY_ACK' (mensagem entregue)
+- Owner: 'imperio1'
+- Webhook data sent successfully
 
-Quando os 4 WhatsApps estiverem conectados e o Railway deployado, o sistema estará **100% funcional** para recuperação automática de vendas expiradas!
-
----
-
-## 🎯 RESULTADO FINAL ESPERADO:
-
-1. ✅ 4 WhatsApps conectados na API
-2. ✅ Railway rodando o sistema principal
-3. ✅ Webhooks configurados no painel Império
-4. ✅ Sistema enviando mensagens automáticas
-5. ✅ Custo total: ~R$55/mês (vs R$197/mês com Z-API)
-
-**Economia:** R$142/mês (72% mais barato)
+Padrão de logs: Verificação de connectionState a cada minuto
+Sem logs de webhooks recebidos do painel Império
+```
 
 ---
 
-**BOM DESCANSO! AMANHÃ TERMINAMOS! 🚀**
+**🎯 OBJETIVO FINAL**: Sistema enviando mensagens automáticas para:
+1. **Pedidos Expirados**: Mensagem de recuperação com PIX
+2. **Pedidos Pagos**: Mensagem de confirmação e parabéns
+
+**📈 PROGRESSO**: 95% completo - Falta apenas configurar AMBOS webhooks no painel.
+
+**⏱️ TEMPO ESTIMADO**: 30-60 minutos para resolver amanhã.
+
+**🔧 ÚLTIMA AÇÃO**: 
+1. Descobrir webhook secret correto
+2. Configurar webhook para order.expired  
+3. Configurar webhook para order.paid
+4. Testar ambos os fluxos
+
+**📊 EVIDÊNCIA DO PROBLEMA**: Print do painel mostra pedidos "Pago" e "Expirado" sem nenhuma automação funcionando.
