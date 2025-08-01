@@ -56,7 +56,7 @@ router.get('/daily', async (req, res) => {
         delayBetweenMessages: '60-120 segundos',
         maxHourly: '25 mensagens',
         maxDaily: '600 mensagens',
-        businessHours: '9h-20h'
+        businessHours: '9h-21h'
       }
     });
     

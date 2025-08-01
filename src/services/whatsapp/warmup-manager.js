@@ -63,8 +63,8 @@ export class WhatsAppWarmupManager {
     const now = new Date();
     const hour = now.getHours();
     
-    // Verificar horário comercial (9h às 20h)
-    if (hour < 9 || hour >= 20) {
+    // Verificar horário comercial (9h às 21h)
+    if (hour < 9 || hour >= 21) {
       logger.warn(`Fora do horário comercial: ${hour}h`);
       return false;
     }
