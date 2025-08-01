@@ -38,11 +38,11 @@ export class WhatsAppWarmupManager {
     
     const daysSinceStart = Math.floor((Date.now() - parseInt(startDate)) / (1000 * 60 * 60 * 24));
     
-    // Escalonamento gradual: 20, 40, 80, 160, 320, 640, 1000
-    const warmupLimits = [20, 40, 80, 160, 320, 640, 1000];
+    // Escalonamento ULTRA CONSERVADOR: 20, 40, 80, 160, 320, 500, 600
+    const warmupLimits = [20, 40, 80, 160, 320, 500, 600];
     
     if (daysSinceStart >= warmupLimits.length) {
-      return 1000; // Número totalmente aquecido
+      return 600; // Número totalmente aquecido - MODO ULTRA CONSERVADOR
     }
     
     return warmupLimits[daysSinceStart];
@@ -73,12 +73,13 @@ export class WhatsAppWarmupManager {
       return false;
     }
     
-    // Verificar limite por hora
+    // Verificar limite por hora - ULTRA CONSERVADOR
     const hourlyKey = `hourly_count:${instanceName}:${now.toISOString().slice(0, 13)}`;
     const hourlyCount = parseInt(await this.redis.get(hourlyKey) || '0');
     
-    if (hourlyCount >= 60) {
-      logger.warn(`Limite horário atingido para ${instanceName}: ${hourlyCount}/60`);
+    // Limite ultra conservador: máximo 25 msgs/hora
+    if (hourlyCount >= 25) {
+      logger.warn(`🚨 Limite horário ULTRA CONSERVADOR atingido para ${instanceName}: ${hourlyCount}/25`);
       return false;
     }
     
@@ -108,23 +109,37 @@ export class WhatsAppWarmupManager {
   }
 
   /**
-   * Obtém delay recomendado entre mensagens
+   * Obtém delay recomendado entre mensagens - MODO ULTRA CONSERVADOR
    */
   async getRecommendedDelay(instanceName) {
-    if (!this.redis) return 15000; // 15 segundos padrão
+    // MODO ULTRA CONSERVADOR: 1 número + alto volume = delays rigorosos
+    const MIN_DELAY = 60000;  // 1 minuto mínimo
+    const MAX_DELAY = 120000; // 2 minutos máximo
+    
+    if (!this.redis) return MIN_DELAY;
     
     const lastMessageTime = await this.redis.get(`last_message:${instanceName}`);
-    if (!lastMessageTime) return 15000;
+    if (!lastMessageTime) {
+      logger.info('🛡️ Primeiro envio do dia - delay conservador aplicado');
+      return MIN_DELAY;
+    }
     
     const timeSinceLastMessage = Date.now() - parseInt(lastMessageTime);
     
-    // Se passou menos de 15 segundos, aguardar mais
-    if (timeSinceLastMessage < 15000) {
-      return 15000 - timeSinceLastMessage + Math.random() * 30000; // 15-45 segundos
+    // Se passou menos de 1 minuto, aguardar o tempo restante + extra
+    if (timeSinceLastMessage < MIN_DELAY) {
+      const remainingTime = MIN_DELAY - timeSinceLastMessage;
+      const extraSafety = Math.random() * 30000; // 0-30s extra por segurança
+      
+      logger.warn(`⏱️ Delay de segurança: aguardando ${Math.round((remainingTime + extraSafety) / 1000)}s`);
+      return remainingTime + extraSafety;
     }
     
-    // Delay aleatório entre 15-45 segundos
-    return 15000 + Math.random() * 30000;
+    // Delay aleatório entre 1-2 minutos
+    const randomDelay = MIN_DELAY + Math.random() * (MAX_DELAY - MIN_DELAY);
+    logger.info(`⏰ Delay aplicado: ${Math.round(randomDelay / 1000)}s (modo ultra conservador)`);
+    
+    return randomDelay;
   }
 
   /**
