@@ -85,7 +85,18 @@ router.get('/status', (req, res) => {
 
 // Middleware para capturar todos os webhooks
 router.use((req, res, next) => {
-  if (req.method === 'POST' && req.path.includes('/webhook/')) {
+  if (req.method === 'POST') {
+    // LOG DETALHADO PARA DEBUG
+    if (req.path.includes('order-expired')) {
+      console.log('🔍 EXPIRED WEBHOOK DEBUG:');
+      console.log('Path:', req.path);
+      console.log('Headers:', JSON.stringify(req.headers, null, 2));
+      console.log('Body:', JSON.stringify(req.body, null, 2));
+      console.log('X-AUTH-WEBHOOK:', req.headers['x-auth-webhook']);
+      console.log('Expected Secret:', process.env.WEBHOOK_SECRET);
+      console.log('Match:', req.headers['x-auth-webhook'] === process.env.WEBHOOK_SECRET);
+      console.log('====================');
+    }
     const webhookInfo = {
       timestamp: new Date().toISOString(),
       method: req.method,
