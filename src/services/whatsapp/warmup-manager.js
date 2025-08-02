@@ -4,6 +4,13 @@ import { getRedisClient } from '../redis/client.js';
 export class WhatsAppWarmupManager {
   constructor() {
     this.redis = process.env.SKIP_DB !== 'true' ? getRedisClient() : null;
+    
+    // Fallback em memória quando Redis não disponível
+    this.inMemoryCounters = {
+      consecutive: new Map(),
+      lastMessage: new Map(),
+      pauseUntil: new Map()
+    };
   }
 
   /**
@@ -94,8 +101,9 @@ export class WhatsAppWarmupManager {
     }
     
     // Verificar se precisa de pausa após mensagens consecutivas
-    const pauseKey = `needs_pause:${instanceName}`;
-    const needsPause = await this.redis.get(pauseKey);
+    const needsPause = this.redis ? 
+      await this.redis.get(`needs_pause:${instanceName}`) : 
+      this.inMemoryCounters.pauseUntil.get(instanceName);
     
     if (needsPause) {
       const pauseTime = Date.now() - parseInt(needsPause);
@@ -107,7 +115,11 @@ export class WhatsAppWarmupManager {
         return false;
       } else {
         // Pausa concluída, remover flag
-        await this.redis.del(pauseKey);
+        if (this.redis) {
+          await this.redis.del(`needs_pause:${instanceName}`);
+        } else {
+          this.inMemoryCounters.pauseUntil.delete(instanceName);
+        }
         logger.info(`✅ Pausa concluída para ${instanceName}, retomando envios`);
       }
     }
@@ -119,41 +131,54 @@ export class WhatsAppWarmupManager {
    * Registra envio de mensagem + controle de consecutivas
    */
   async recordMessageSent(instanceName) {
-    if (!this.redis) return;
-    
     const now = new Date();
     
-    // Incrementar contador diário
-    const dailyKey = `daily_count:${instanceName}:${now.toISOString().split('T')[0]}`;
-    await this.redis.incr(dailyKey);
-    await this.redis.expire(dailyKey, 86400); // Expirar em 24h
-    
-    // Incrementar contador horário
-    const hourlyKey = `hourly_count:${instanceName}:${now.toISOString().slice(0, 13)}`;
-    await this.redis.incr(hourlyKey);
-    await this.redis.expire(hourlyKey, 3600); // Expirar em 1h
-    
-    // CONTROLE DE MENSAGENS CONSECUTIVAS
-    const consecutiveKey = `consecutive:${instanceName}`;
-    const consecutiveCount = await this.redis.incr(consecutiveKey);
-    await this.redis.expire(consecutiveKey, 1800); // Expira em 30 min
-    
-    logger.info(`📊 Mensagem ${consecutiveCount} consecutiva para ${instanceName}`);
-    
-    // Se atingir 5 mensagens consecutivas, marcar para pausa
-    if (consecutiveCount >= 5) {
-      const pauseKey = `needs_pause:${instanceName}`;
-      await this.redis.set(pauseKey, Date.now().toString());
-      await this.redis.expire(pauseKey, 1800); // 30 min
+    if (this.redis) {
+      // Com Redis: usar implementação completa
+      const dailyKey = `daily_count:${instanceName}:${now.toISOString().split('T')[0]}`;
+      await this.redis.incr(dailyKey);
+      await this.redis.expire(dailyKey, 86400);
       
-      logger.warn(`🛑 ${instanceName} precisa de pausa após ${consecutiveCount} mensagens consecutivas`);
+      const hourlyKey = `hourly_count:${instanceName}:${now.toISOString().slice(0, 13)}`;
+      await this.redis.incr(hourlyKey);
+      await this.redis.expire(hourlyKey, 3600);
       
-      // Reset contador para próximo ciclo
-      await this.redis.del(consecutiveKey);
+      const consecutiveCount = await this.redis.incr(`consecutive:${instanceName}`);
+      await this.redis.expire(`consecutive:${instanceName}`, 1800);
+      
+      logger.info(`📊 Mensagem ${consecutiveCount} consecutiva para ${instanceName}`);
+      
+      if (consecutiveCount >= 5) {
+        await this.redis.set(`needs_pause:${instanceName}`, Date.now().toString());
+        await this.redis.expire(`needs_pause:${instanceName}`, 1800);
+        logger.warn(`🛑 ${instanceName} precisa de pausa após ${consecutiveCount} mensagens consecutivas`);
+        await this.redis.del(`consecutive:${instanceName}`);
+      }
+      
+      await this.redis.set(`last_message:${instanceName}`, Date.now().toString());
+    } else {
+      // Sem Redis: usar contadores em memória para controle consecutivo
+      const currentCount = (this.inMemoryCounters.consecutive.get(instanceName) || 0) + 1;
+      this.inMemoryCounters.consecutive.set(instanceName, currentCount);
+      
+      logger.info(`📊 Mensagem ${currentCount} consecutiva para ${instanceName} (modo sem Redis)`);
+      
+      // Se atingir 5 mensagens consecutivas, marcar para pausa
+      if (currentCount >= 5) {
+        this.inMemoryCounters.pauseUntil.set(instanceName, Date.now().toString());
+        this.inMemoryCounters.consecutive.set(instanceName, 0); // Reset contador
+        logger.warn(`🛑 ${instanceName} precisa de pausa após ${currentCount} mensagens consecutivas (modo sem Redis)`);
+      }
+      
+      // Registrar última mensagem
+      this.inMemoryCounters.lastMessage.set(instanceName, Date.now());
+      
+      // Limpeza automática após 30 minutos (evitar memory leak)
+      setTimeout(() => {
+        this.inMemoryCounters.consecutive.delete(instanceName);
+        this.inMemoryCounters.pauseUntil.delete(instanceName);
+      }, 1800000); // 30 min
     }
-    
-    // Registrar última mensagem enviada
-    await this.redis.set(`last_message:${instanceName}`, Date.now().toString());
   }
 
   /**
@@ -164,9 +189,10 @@ export class WhatsAppWarmupManager {
     const MIN_DELAY = 60000;  // 1 minuto mínimo
     const MAX_DELAY = 120000; // 2 minutos máximo
     
-    if (!this.redis) return MIN_DELAY;
+    const lastMessageTime = this.redis ? 
+      await this.redis.get(`last_message:${instanceName}`) :
+      this.inMemoryCounters.lastMessage.get(instanceName);
     
-    const lastMessageTime = await this.redis.get(`last_message:${instanceName}`);
     if (!lastMessageTime) {
       logger.info('🛡️ Primeiro envio do dia - delay conservador aplicado');
       return MIN_DELAY;
