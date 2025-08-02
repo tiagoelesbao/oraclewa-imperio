@@ -71,7 +71,8 @@ export const handleOrderExpired = async (req, res) => {
         orderId: data.id,
         orderTotal: data.total,
         expiresAt: data.expirationAt,
-        buttons: messageOptions.buttons
+        buttons: messageOptions.buttons,
+        timestamp: new Date().toISOString() // Para verificar frescor da mensagem
       }
     }, {
       priority: 2,
@@ -155,7 +156,8 @@ export const handleOrderPaid = async (req, res) => {
       metadata: {
         orderId: data.id,
         orderTotal: data.total,
-        replyButtons: messageOptions.replyButtons
+        replyButtons: messageOptions.replyButtons,
+        timestamp: new Date().toISOString() // Para verificar frescor da mensagem
       }
     }, {
       priority: 3 // Highest priority

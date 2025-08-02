@@ -6,10 +6,28 @@ export const processMessage = async (job) => {
   const { phoneNumber, message, messageOptions, type, customerId, metadata } = job.data;
   
   try {
+    // 🕘 VERIFICAR FRESCOR DA MENSAGEM (lead quente)
+    const messageAge = metadata?.timestamp ? Date.now() - new Date(metadata.timestamp).getTime() : 0;
+    const MAX_MESSAGE_AGE = 4 * 60 * 60 * 1000; // 4 horas máximo
+    
+    if (messageAge > MAX_MESSAGE_AGE) {
+      logger.warn(`🗑️ Mensagem muito antiga (${Math.round(messageAge / 60000)} min) - descartando para manter lead quente`, {
+        type,
+        phoneNumber: phoneNumber.slice(0, -4) + '****',
+        ageMinutes: Math.round(messageAge / 60000)
+      });
+      return {
+        success: false,
+        reason: 'message_too_old',
+        message: 'Message discarded - lead no longer fresh'
+      };
+    }
+    
     logger.info(`🤖 Processing message with HUMAN SIMULATION`, {
       type,
       phoneNumber: phoneNumber.slice(0, -4) + '****',
       messageLength: message.length,
+      ageMinutes: Math.round(messageAge / 60000),
       hasButtons: !!(messageOptions?.buttons || messageOptions?.replyButtons)
     });
     
