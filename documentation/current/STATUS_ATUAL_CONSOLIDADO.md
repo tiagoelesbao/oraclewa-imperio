@@ -1,19 +1,21 @@
 # 📊 Status Atual Consolidado - OracleWA Sistema Império
 
-**Data**: 01/08/2025 às 20:10  
-**Versão**: Sistema Ultra Conservador v2.1  
-**Status**: ✅ OPERACIONAL COM SUCESSO  
+**Data**: 01/08/2025 às 21:50  
+**Versão**: Sistema Ultra Conservador v2.2 + Lead Quente  
+**Status**: ✅ OPERACIONAL E BULLETPROOF  
 
 ---
 
 ## 🎯 **SITUAÇÃO ATUAL - RESUMO EXECUTIVO**
 
 ### ✅ **CONQUISTAS REALIZADAS**
-1. **Sistema funcionando**: 3 webhooks processados com sucesso hoje
-2. **Autenticação resolvida**: Endpoints /temp- operacionais 
+1. **Sistema funcionando**: 7+ webhooks processados com sucesso hoje
+2. **Autenticação resolvida**: Endpoints /temp- operacionais sem erro 500
 3. **Comportamento humanizado**: Simulação de digitação implementada
 4. **Ultra conservador**: Delays de 1-2 min + pausas após 5 msgs consecutivas
-5. **Horário expandido**: Funcionando das 9h às 21h para testes
+5. **Horário comercial**: Rigorosamente respeitado das 9h às 21h
+6. **Lead quente**: Mensagens antigas (>4h) automaticamente descartadas
+7. **Debugging completo**: Todos os problemas identificados e corrigidos
 
 ### 📱 **INFRAESTRUTURA ATUAL**
 - **WhatsApp ativo**: 1 número (imperio1) - conectado e funcional
@@ -26,10 +28,12 @@
 - ✅ Delays entre mensagens: 60-120 segundos
 - ✅ Limite horário: 25 mensagens/hora  
 - ✅ Limite diário: 600 mensagens/dia
-- ✅ Pausas consecutivas: 5 min após 5 mensagens seguidas
+- ✅ Pausas consecutivas: 5 min após 5 mensagens seguidas (funciona sem Redis)
 - ✅ Simulação de digitação: 40 WPM com pausas contextuais
-- ✅ Horário comercial: 9h-21h (expandido para testes)
+- ✅ Horário comercial: 9h-21h rigorosamente aplicado
 - ✅ Variações de templates: 3 variações por tipo
+- ✅ Lead quente: Descarte automático de mensagens >4h
+- ✅ Controle em memória: Funciona sem dependência Redis
 
 ---
 

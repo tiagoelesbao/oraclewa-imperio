@@ -65,10 +65,12 @@
 
 ## ⚡ **RESUMO EXECUTIVO (TL;DR)**
 
-### **Situação Atual (01/08/2025)**
-- ✅ **Sistema funcionando** perfeitamente
-- ✅ **3 webhooks processados** com sucesso hoje
+### **Situação Atual (01/08/2025 - 22h)**
+- ✅ **Sistema BULLETPROOF** após debugging noturno
+- ✅ **7+ webhooks processados** com sucesso hoje
 - ✅ **Ultra conservador** com comportamento humanizado
+- ✅ **Lead quente** - mensagens antigas descartadas automaticamente
+- ✅ **Horário comercial** rigorosamente aplicado
 - ⚠️ **Limitação**: Apenas 1 número ativo (600 msgs/dia)
 - 🎯 **Necessidade**: 2000+ msgs/dia requeridas
 
@@ -105,6 +107,11 @@ curl https://oraclewa-imperio-production.up.railway.app/api/status/daily
 - **O que é**: Plano detalhado para sexta-feira 02/08
 - **Quando usar**: PRIMEIRA COISA ao acordar amanhã
 - **Conteúdo**: Cronograma hora-a-hora, contatos, checklist
+
+### **9. NOTURNO_01_08_DEBUGGING_SESSION.md** 🐛 **HISTÓRICO**
+- **O que é**: Documentação completa da sessão de debugging noturna
+- **Quando usar**: Para entender correções feitas na madrugada
+- **Conteúdo**: Problemas identificados, soluções implementadas, validações
 
 ---
 
