@@ -101,6 +101,11 @@ curl https://oraclewa-imperio-production.up.railway.app/api/status/daily
 - **Status**: https://oraclewa-imperio-production.up.railway.app/api/status/quick
 - **Logs**: Railway Dashboard > oraclewa-imperio-production
 
+### **8. ACAO_AMANHA_02_08.md** ⭐ **PRIORITÁRIO**
+- **O que é**: Plano detalhado para sexta-feira 02/08
+- **Quando usar**: PRIMEIRA COISA ao acordar amanhã
+- **Conteúdo**: Cronograma hora-a-hora, contatos, checklist
+
 ---
 
 ## 🔄 **CICLO DE ATUALIZAÇÃO**

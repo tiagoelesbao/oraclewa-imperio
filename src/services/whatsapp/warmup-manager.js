@@ -58,15 +58,19 @@ export class WhatsAppWarmupManager {
       return false;
     }
     
-    if (!this.redis) return true; // Sem Redis, permitir sempre
-    
+    // ⏰ VERIFICAR HORÁRIO COMERCIAL SEMPRE (mesmo sem Redis)
     const now = new Date();
     const hour = now.getHours();
     
     // Verificar horário comercial (9h às 21h)
     if (hour < 9 || hour >= 21) {
-      logger.warn(`Fora do horário comercial: ${hour}h`);
+      logger.warn(`🚫 Fora do horário comercial: ${hour}h - mensagem bloqueada`);
       return false;
+    }
+    
+    if (!this.redis) {
+      logger.info('✅ Horário comercial OK - Redis desabilitado, permitindo envio');
+      return true; // Sem Redis, mas dentro do horário
     }
     
     // Verificar limite diário
