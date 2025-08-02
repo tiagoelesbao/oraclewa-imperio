@@ -159,6 +159,18 @@ export const getNextAvailableInstance = async () => {
 
 export const sendMessage = async (phoneNumber, message, instanceName = null, messageOptions = null) => {
   try {
+    // VERIFICAR HORÁRIO COMERCIAL E LIMITES PRIMEIRO
+    const targetInstance = instanceName || 'imperio1';
+    const canSend = await warmupManager.canSendMessage(targetInstance);
+    if (!canSend) {
+      logger.warn(`🚫 Cannot send message - blocked by warmup manager (business hours/limits)`);
+      return {
+        success: false,
+        reason: 'warmup_blocked',
+        message: 'Message blocked by business hours or rate limits'
+      };
+    }
+    
     // Verificar se pode enviar para este destinatário
     const canMessage = await warmupManager.canMessageRecipient(phoneNumber);
     if (!canMessage) {
@@ -221,6 +233,9 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
         replyButtons: messageOptions.replyButtons
       });
     }
+    
+    // Registrar mensagem enviada (para controle consecutivo e contadores)
+    await warmupManager.recordMessageSent(instance.name);
     
     // Registrar contato com destinatário
     await warmupManager.recordRecipientContact(phoneNumber);
