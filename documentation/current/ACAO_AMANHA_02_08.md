@@ -29,7 +29,8 @@ SOLICITAR:
 #### **10h00 - Configurar Evolution API**
 ```bash
 # SSH no servidor Hetzner
-ssh root@94.130.149.151
+ssh root@128.140.7.154
+senha: KtwppRMpJfi3
 
 # Criar novas instâncias (quando números estiverem prontos)
 curl -X POST http://localhost:8080/instance/create \

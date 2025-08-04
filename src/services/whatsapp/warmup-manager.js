@@ -69,11 +69,12 @@ export class WhatsAppWarmupManager {
     const now = new Date();
     const hour = now.getHours();
     
-    // Verificar horário comercial (9h às 21h)
-    if (hour < 9 || hour >= 21) {
-      logger.warn(`🚫 Fora do horário comercial: ${hour}h - mensagem bloqueada`);
-      return false;
-    }
+    // Verificar horário comercial (9h às 21h) - DESABILITADO TEMPORARIAMENTE
+    // if (hour < 9 || hour >= 21) {
+    //   logger.warn(`🚫 Fora do horário comercial: ${hour}h - mensagem bloqueada`);
+    //   return false;
+    // }
+    logger.info(`⏰ Verificação de horário comercial DESABILITADA - permitindo envio às ${hour}h`);
     
     if (!this.redis) {
       logger.info('✅ Horário comercial OK - Redis desabilitado, permitindo envio');
