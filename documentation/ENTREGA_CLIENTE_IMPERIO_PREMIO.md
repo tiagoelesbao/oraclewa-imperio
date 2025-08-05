@@ -10,15 +10,17 @@
 
 ## 📋 Resumo Executivo
 
-Sistema de recuperação automática de carrinho abandonado implementado com sucesso para o Império Prêmio. A solução conecta seu e-commerce diretamente ao WhatsApp, enviando mensagens personalizadas para clientes que abandonaram suas compras.
+Sistema de automação WhatsApp implementado com sucesso para o Império Prêmio. A solução conecta seu painel de sorteios diretamente ao WhatsApp, enviando mensagens automáticas tanto para recuperação de cotas expiradas quanto para confirmação de vendas aprovadas.
 
 ### ✅ O que foi entregue:
-- Sistema completo de webhook integrado ao seu e-commerce
-- Templates de mensagem personalizados e otimizados
-- Infraestrutura robusta na nuvem (Railway + Hetzner)
-- WhatsApp Business conectado e aquecido
-- Sistema anti-ban implementado
-- Monitoramento e logs automatizados
+- Sistema completo de webhook integrado ao painel Império
+- **Dois fluxos de mensagem**: Cotas Expiradas + Vendas Aprovadas
+- Templates personalizados para sorteios e premiações
+- **6 variações de mensagem** (3 para cada tipo)
+- Infraestrutura robusta na nuvem (Railway)
+- WhatsApp Business multi-instância conectado
+- Sistema anti-ban ultra conservador
+- Monitoramento e logs automatizados em tempo real
 
 ---
 
@@ -69,7 +71,9 @@ Painel Império → OracleWA API → Evolution API → WhatsApp Business
 
 ## 📱 Templates de Mensagem Implementados
 
-### Template Principal - Específico para Sorteios Império
+### 1️⃣ COTAS EXPIRADAS - Recuperação de Vendas
+
+#### Template Principal - Específico para Sorteios Império
 ```
 🎰 Olá {{user.name}}! 
 
@@ -132,28 +136,131 @@ Total: R$ {{total}},00
 
 ---
 
+### 2️⃣ VENDAS APROVADAS - Confirmação e Agradecimento
+
+#### Template Principal - Confirmação de Pagamento
+```
+🎉 *PARABÉNS {{user.name}}!* 🎉
+
+✅ *Pagamento Confirmado com Sucesso!*
+
+📊 *Detalhes da sua participação:*
+🎫 *Sorteio:* {{product.title}}
+🔢 *Quantidade:* {{quantity}} cota(s)
+💰 *Valor Pago:* R$ {{total}},00
+📅 *Data:* {{createdAt}}
+🆔 *Código:* #{{id}}
+
+🏆 *VOCÊ ESTÁ CONCORRENDO A:*
+💵 *R$ 200.000,00 EM PRÊMIOS*
+🎯 Sorteio pela Loteria Federal
+
+📱 *Guarde este comprovante!*
+Suas cotas já estão registradas e você está participando do sorteio.
+
+🍀 *Boa sorte!*
+```
+
+#### Variação 1 - Resumo Direto
+```
+🎉 *PARABÉNS, {{user.name}}!*
+
+✅ *Seu pagamento foi aprovado com sucesso!*
+
+📦 *Detalhes do seu pedido:*
+• *Produto:* {{product.title}}
+• *Quantidade:* {{quantity}} cotas
+• *Total pago:* R$ {{total}}
+
+🎰 *Você está concorrendo a R$ 200.000,00!*
+
+🍀 *Boa sorte!*
+```
+
+#### Variação 2 - Confirmação Simplificada
+```
+🏆 *{{user.name}}, pagamento confirmado!*
+
+✅ *Tudo certo com sua compra!*
+
+📋 *Resumo:*
+🎟️ {{quantity}} cotas - {{product.title}}
+💰 Valor: R$ {{total}}
+
+🎯 *Prêmio: R$ 200.000,00*
+
+🤞 *Dedos cruzados para você!*
+```
+
+#### Variação 3 - Agradecimento
+```
+✨ *Olá {{user.name}}!*
+
+🎊 *Compra aprovada com sucesso!*
+
+🎫 *Suas {{quantity}} cotas para:*
+{{product.title}}
+
+💵 *Investimento:* R$ {{total}}
+💰 *Concorrendo a:* R$ 200.000,00
+
+🌟 *Que a sorte esteja com você!*
+```
+
+### Fluxo de Mensagens Implementado
+1. **Cliente abandona carrinho** → Recebe mensagem de recuperação
+2. **Cliente finaliza compra** → Recebe confirmação de pagamento
+3. **Ambos os fluxos** possuem múltiplas variações para evitar repetição
+
+---
+
 ## ⚙️ Configurações Técnicas
 
 ### Endpoints Configurados
+
+#### Para Cotas Expiradas
 ```
 Principal: /webhook/order-expired
 Debug:     /webhook/debug-expired  
 Teste:     /webhook/test-order-expired
-Captura:   /webhook/raw-capture
+```
 
-URL Base: https://oraclewa-imperio-production.up.railway.app
-Headers:
-  x-auth-webhook: [chave específica do painel]
-  Content-Type: application/json
+#### Para Vendas Aprovadas
+```
+Principal: /webhook/order-paid
+Alternativo: /webhook/venda-aprovada
+Teste:     /webhook/test-order-paid
+```
+
+#### Utilitários
+```
+Captura:   /webhook/raw-capture
+Debug:     /webhook/debug
+```
+
+**URL Base:** https://oraclewa-imperio-production.up.railway.app  
+**Headers Obrigatórios:**
+```
+x-auth-webhook: [chave específica do painel]
+Content-Type: application/json
 ```
 
 ### Dados Processados Automaticamente
-O sistema recebe do painel Império e processa:
+
+#### Para Cotas Expiradas
 - **Usuário**: nome, telefone, email
 - **Sorteio**: título, descrição, premiação
-- **Cotas**: quantidade reservada, valor total
+- **Cotas**: quantidade reservada
+- **Valor**: total do carrinho
 - **Prazo**: data e hora de expiração
 - **Link**: URL para finalizar compra
+
+#### Para Vendas Aprovadas
+- **Usuário**: nome, telefone, email
+- **Sorteio**: título, premiação confirmada
+- **Cotas**: quantidade adquirida
+- **Pagamento**: valor pago, data, código da transação
+- **Status**: confirmação de participação no sorteio
 
 ### Proteções Anti-Ban Implementadas
 - **Rate limiting escalonado**: 20-600 msgs/dia (baseado no aquecimento)
