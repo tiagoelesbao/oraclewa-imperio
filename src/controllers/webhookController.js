@@ -33,8 +33,17 @@ export const handleOrderExpired = async (req, res) => {
     }
 
     logger.info('Creating message data...');
+    
+    // Normalize phone number format (remove + prefix if present)
+    const normalizedPhone = data.user.phone.startsWith('+') 
+      ? data.user.phone.substring(1) 
+      : data.user.phone;
+    
     const messageData = {
-      user: data.user,
+      user: {
+        ...data.user,
+        phone: normalizedPhone
+      },
       product: data.product,
       quantity: data.quantity,
       total: data.total,
@@ -61,10 +70,10 @@ export const handleOrderExpired = async (req, res) => {
     };
 
     logger.info('Adding message to queue...');
-    logger.info('Phone number:', data.user.phone);
+    logger.info('Phone number:', normalizedPhone);
     
     await addMessageToQueue({
-      phoneNumber: data.user.phone,
+      phoneNumber: normalizedPhone,
       message,
       messageOptions,
       type: 'order_expired',
@@ -122,8 +131,17 @@ export const handleOrderPaid = async (req, res) => {
     }
 
     logger.info('Creating message data...');
+    
+    // Normalize phone number format (remove + prefix if present)
+    const normalizedPhone = data.user.phone.startsWith('+') 
+      ? data.user.phone.substring(1) 
+      : data.user.phone;
+    
     const messageData = {
-      user: data.user,
+      user: {
+        ...data.user,
+        phone: normalizedPhone
+      },
       product: data.product,
       quantity: data.quantity,
       total: data.total,
@@ -133,11 +151,11 @@ export const handleOrderPaid = async (req, res) => {
     logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
     logger.info('Adding message to queue with interactive buttons...');
-    logger.info('Phone number:', data.user.phone);
+    logger.info('Phone number:', normalizedPhone);
     
     // Usar o sistema de renderização com botões interativos
     await addMessageToQueue({
-      phoneNumber: data.user.phone,
+      phoneNumber: normalizedPhone,
       message: '', // Will be rendered by messageProcessor
       messageOptions: null, // Will be handled by template renderer
       type: 'order_paid',

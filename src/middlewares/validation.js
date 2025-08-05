@@ -14,7 +14,7 @@ const webhookSchemas = {
       user: Joi.object({
         id: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
         name: Joi.string().required(),
-        phone: Joi.string().required(),
+        phone: Joi.string().pattern(/^\+?\d{10,15}$/).required(),
         email: Joi.string().email().allow('').optional(),
         cpf: Joi.string().allow('').optional(),
         affiliateCode: Joi.string().allow('').optional(),
@@ -46,7 +46,7 @@ const webhookSchemas = {
       user: Joi.object({
         id: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
         name: Joi.string().required(),
-        phone: Joi.string().required(),
+        phone: Joi.string().pattern(/^\+?\d{10,15}$/).required(),
         email: Joi.string().email().allow('').optional(),
         cpf: Joi.string().allow('').optional(),
         affiliateCode: Joi.string().allow('').optional(),
