@@ -3,67 +3,72 @@ export const ORDER_PAID_VARIATIONS = [
   {
     template: `🎉 *PARABÉNS, {{user.name}}!*
 
-✅ *Seu pagamento foi aprovado com sucesso!*
+✅ *Pagamento Confirmado!*
 
-📦 *Detalhes do seu pedido:*
-• *Produto:* {{product.title}}
-• *Quantidade:* {{quantity}} cotas
-• *Total pago:* R$ {{total}},00
+━━━━━━━━━━━━━━━
+📊 *SEUS NÚMEROS*
+━━━━━━━━━━━━━━━
 
-🎰 *Você está concorrendo a R$ 200.000,00!*
+🎫 {{product.title}}
+🔢 *{{quantity}} cotas*
+💰 *R$ {{total}},00*
 
-📱 *Acompanhe o sorteio:*
-• Data: Será informada em breve
-• Pelo site da Loteria Federal
+━━━━━━━━━━━━━━━
+🏆 *PREMIAÇÃO*
+━━━━━━━━━━━━━━━
+
+💵 *R$ 200.000,00*
+🎯 Loteria Federal
+
+━━━━━━━━━━━━━━━
 
 🍀 *Boa sorte!*
-💚 *Obrigado pela confiança!*
-
-🎯 *Participe da nossa comunidade VIP:*
-👥 Entre no grupo exclusivo de ganhadores!
-🔗 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF?mode=ac_t
 
 *Império Premiações* 🏆`
   },
   {
-    template: `🏆 *{{user.name}}, pagamento confirmado!*
+    template: `🏆 *{{user.name}}, tudo certo!*
 
-✅ *Tudo certo com sua compra!*
+✅ *Pagamento Aprovado*
 
-📋 *Resumo:*
-🎟️ {{quantity}} cotas - {{product.title}}
-💰 Valor: R$ {{total}},00
+━━━━━━━━━━━━━━━
 
-🎯 *Prêmio: R$ 200.000,00*
-📅 Sorteio: Data será informada em breve
+🎟️ *{{quantity}} cotas*
+{{product.title}}
 
-🤞 *Dedos cruzados para você!*
-📞 Dúvidas? Pode me chamar!
+💰 *Total: R$ {{total}},00*
 
-🎯 *Participe da nossa comunidade VIP:*
-👥 Entre no grupo exclusivo de ganhadores!
-🔗 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF?mode=ac_t
+━━━━━━━━━━━━━━━
 
-*Império Premiações* ✨`
+🎯 *Concorrendo a:*
+💵 *R$ 200.000,00*
+
+━━━━━━━━━━━━━━━
+
+🤞 Boa sorte!
+
+*Império* ✨`
   },
   {
     template: `✨ *Olá {{user.name}}!*
 
-🎊 *Compra aprovada com sucesso!*
+🎊 *Compra Aprovada!*
 
-🎫 *Suas {{quantity}} cotas para:*
-{{product.title}}
+━━━━━━━━━━━━━━━
 
-💵 *Investimento:* R$ {{total}},00
-💰 *Concorrendo a:* R$ 200.000,00
+🎫 *{{quantity}} cotas*
+💵 *R$ {{total}},00*
 
-📊 *Sorteio oficial pela Loteria Federal*
+━━━━━━━━━━━━━━━
 
-🌟 *Que a sorte esteja com você!*
+💰 *Prêmio:*
+*R$ 200.000,00*
 
-🎯 *Participe da nossa comunidade VIP:*
-👥 Entre no grupo exclusivo de ganhadores!
-🔗 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF?mode=ac_t
+📊 Loteria Federal
+
+━━━━━━━━━━━━━━━
+
+🌟 Boa sorte!
 
 *Equipe Império* 🎰`
   }
