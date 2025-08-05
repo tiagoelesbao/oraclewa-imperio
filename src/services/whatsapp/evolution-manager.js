@@ -226,7 +226,8 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
         buttons: messageOptions.buttons.map(button => ({
           title: button.displayText || button.title,
           displayText: button.displayText || button.title,
-          id: button.id || button.title.toLowerCase().replace(/\s+/g, '_')
+          id: button.id || button.title.toLowerCase().replace(/\s+/g, '_'),
+          type: "reply"
         })),
         delay: 1000,
         linkPreview: false
