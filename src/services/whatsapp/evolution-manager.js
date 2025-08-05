@@ -241,12 +241,10 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
       enhancedMessage += '📱 Salve nosso contato para atualizações\n\n';
       enhancedMessage += '_Império Premiações - Realizando sonhos_ 🏆';
       
-      // Enviar como mensagem de texto otimizada
+      // Enviar como mensagem de texto otimizada (Evolution API v2 format)
       response = await instance.client.post('/message/sendText/' + instance.name, {
         number: formattedPhone,
-        textMessage: {
-          text: enhancedMessage
-        }
+        text: enhancedMessage
       });
       
       logger.info(`Enhanced text message sent successfully via ${instance.name} to ${phoneNumber}`, {
@@ -266,12 +264,10 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
         format: 'v1.7.1_listMessage'
       });
     } else {
-      // Mensagem de texto simples (formato Evolution API)
+      // Mensagem de texto simples (Evolution API v2 format)
       response = await instance.client.post('/message/sendText/' + instance.name, {
         number: formattedPhone,
-        textMessage: {
-          text: message
-        }
+        text: message
       });
       
       logger.info(`Text message sent successfully via ${instance.name} to ${phoneNumber}`);
