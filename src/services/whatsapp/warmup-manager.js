@@ -30,29 +30,12 @@ export class WhatsAppWarmupManager {
 
   /**
    * Obtém o limite diário baseado no período de aquecimento
+   * TEMPORARIAMENTE DESABILITADO - retorna limite alto
    */
   async getDailyLimit(instanceName) {
-    if (!this.redis) return 1000; // Limite padrão se não tiver Redis
-    
-    const warmupKey = `warmup:${instanceName}`;
-    const startDate = await this.redis.get(warmupKey);
-    
-    if (!startDate) {
-      // Primeira vez usando o número - iniciar aquecimento
-      await this.redis.set(warmupKey, Date.now().toString());
-      return 20; // Primeiro dia
-    }
-    
-    const daysSinceStart = Math.floor((Date.now() - parseInt(startDate)) / (1000 * 60 * 60 * 24));
-    
-    // Escalonamento ULTRA CONSERVADOR: 20, 40, 80, 160, 320, 500, 600
-    const warmupLimits = [20, 40, 80, 160, 320, 500, 600];
-    
-    if (daysSinceStart >= warmupLimits.length) {
-      return 600; // Número totalmente aquecido - MODO ULTRA CONSERVADOR
-    }
-    
-    return warmupLimits[daysSinceStart];
+    // 🔧 DESABILITADO TEMPORARIAMENTE - sem limite diário progressivo
+    logger.info('📊 Limite diário progressivo DESABILITADO - usando limite fixo de 5000');
+    return 5000; // Limite alto para não bloquear
   }
 
   /**
@@ -219,23 +202,11 @@ export class WhatsAppWarmupManager {
 
   /**
    * Verifica se pode enviar para um número específico
+   * TEMPORARIAMENTE DESABILITADO - sempre retorna true
    */
   async canMessageRecipient(phoneNumber) {
-    if (!this.redis) return true;
-    
-    const recipientKey = `recipient:${phoneNumber}`;
-    const lastContact = await this.redis.get(recipientKey);
-    
-    if (!lastContact) return true;
-    
-    // Não enviar mais de 1 campanha por dia para o mesmo número
-    const hoursSinceLastContact = (Date.now() - parseInt(lastContact)) / (1000 * 60 * 60);
-    
-    if (hoursSinceLastContact < 24) {
-      logger.warn(`Número ${phoneNumber} contactado há menos de 24h`);
-      return false;
-    }
-    
+    // 🔧 DESABILITADO TEMPORARIAMENTE - sem cooldown de 24h
+    logger.info('🔓 Cooldown de 24h DESABILITADO - permitindo reenvio para qualquer número');
     return true;
   }
 

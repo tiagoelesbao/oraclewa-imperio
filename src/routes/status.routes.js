@@ -96,4 +96,27 @@ router.get('/quick', async (req, res) => {
   }
 });
 
+// Nova rota para executar testes do sistema
+router.get('/test', async (req, res) => {
+  try {
+    logger.info('🧪 Executando testes do sistema via API...');
+    
+    // Importar e executar testes
+    const { runSystemTests } = await import('../api/test/system-test.js');
+    const testResults = await runSystemTests();
+    
+    res.json({
+      status: 'tests_completed',
+      timestamp: new Date().toISOString(),
+      results: testResults
+    });
+  } catch (error) {
+    logger.error('Error running system tests:', error);
+    res.status(500).json({ 
+      error: 'Failed to run tests',
+      details: error.message 
+    });
+  }
+});
+
 export default router;
