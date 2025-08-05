@@ -215,23 +215,49 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
     
     let response;
     
-    // Temporariamente desabilitando botões para evitar erros
-    // TODO: Implementar formato correto de botões para Evolution API
-    
-    // Mensagem de texto simples (formato correto Evolution API)
-    response = await instance.client.post('/message/sendText/' + instance.name, {
-      number: formattedPhone,
-      textMessage: {
-        text: message
-      }
-    });
-    
-    // Log se havia botões planejados
-    if (messageOptions?.buttons || messageOptions?.replyButtons) {
-      logger.info('Buttons were planned but sent as text message to avoid API errors', {
-        buttons: messageOptions.buttons,
-        replyButtons: messageOptions.replyButtons
+    // Verificar se deve enviar mensagem com botões (Evolution API v1.7.1)
+    if (messageOptions?.buttons && messageOptions.buttons.length > 0) {
+      // Enviar mensagem com botões usando Evolution API v1.7.1 (formato buttonMessage)
+      response = await instance.client.post('/message/sendButtons/' + instance.name, {
+        number: formattedPhone,
+        buttonMessage: {
+          title: messageOptions.title || "🎉 PARABÉNS!",
+          text: message,
+          footerText: messageOptions.footer || "Império Premiações 🏆",
+          buttons: messageOptions.buttons.map(button => ({
+            buttonId: button.id || button.title.toLowerCase().replace(/\s+/g, '_'),
+            buttonText: button.displayText || button.title,
+            type: 1
+          })),
+          headerType: 1
+        }
       });
+      
+      logger.info(`Button message sent successfully via ${instance.name} to ${phoneNumber}`, {
+        buttonCount: messageOptions.buttons.length,
+        format: 'v1.7.1_buttonMessage'
+      });
+    } else if (messageOptions?.listMessage) {
+      // Enviar mensagem de lista usando Evolution API v1.7.1
+      response = await instance.client.post('/message/sendList/' + instance.name, {
+        number: formattedPhone,
+        listMessage: messageOptions.listMessage
+      });
+      
+      logger.info(`List message sent successfully via ${instance.name} to ${phoneNumber}`, {
+        sections: messageOptions.listMessage.sections?.length || 0,
+        format: 'v1.7.1_listMessage'
+      });
+    } else {
+      // Mensagem de texto simples (formato Evolution API)
+      response = await instance.client.post('/message/sendText/' + instance.name, {
+        number: formattedPhone,
+        textMessage: {
+          text: message
+        }
+      });
+      
+      logger.info(`Text message sent successfully via ${instance.name} to ${phoneNumber}`);
     }
     
     // Registrar mensagem enviada (para controle consecutivo e contadores)

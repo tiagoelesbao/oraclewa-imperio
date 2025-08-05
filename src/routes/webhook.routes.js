@@ -5,7 +5,8 @@ import {
   handleOrderPaid,
   handleCarrinhoAbandonado,
   handleVendaExpirada,
-  handleVendaAprovada
+  handleVendaAprovada,
+  handleButtonClick
 } from '../controllers/webhookController.js';
 import { validateWebhookData } from '../middlewares/validation.js';
 
@@ -228,5 +229,11 @@ router.post('/temp-order-paid',
   validateWebhookData('order_paid'),
   handleOrderPaid
 );
+
+// Endpoint para receber cliques de botões da Evolution API
+router.post('/button-click', handleButtonClick);
+
+// Endpoint sem auth para teste de botões
+router.post('/test-button-click', handleButtonClick);
 
 export default router;

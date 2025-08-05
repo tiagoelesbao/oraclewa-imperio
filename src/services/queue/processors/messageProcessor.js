@@ -1,6 +1,7 @@
 import logger from '../../../utils/logger.js';
 import { sendMessage } from '../../whatsapp/evolution-manager.js';
 import TypingSimulator from '../../whatsapp/typing-simulator.js';
+import { renderTemplateWithButtons } from '../../templates/renderer.js';
 
 export const processMessage = async (job) => {
   const { phoneNumber, message, messageOptions, type, customerId, metadata } = job.data;
@@ -44,8 +45,26 @@ export const processMessage = async (job) => {
     
     let result;
     
-    // Se há botões ou opções especiais, usar função apropriada
-    if (messageOptions?.buttons || messageOptions?.replyButtons) {
+    // Se há tipo de template especificado, renderizar com botões
+    if (type && (type === 'order_paid' || type === 'order_expired')) {
+      try {
+        const templateData = metadata || {};
+        const templateResult = await renderTemplateWithButtons(type, templateData);
+        
+        if (templateResult.buttonOptions) {
+          // Enviar mensagem com botões interativos
+          result = await sendMessage(phoneNumber, templateResult.message, null, templateResult.buttonOptions);
+          logger.info(`Sent ${type} message with interactive buttons`);
+        } else {
+          // Fallback para mensagem de texto
+          result = await sendMessage(phoneNumber, templateResult.message);
+        }
+      } catch (templateError) {
+        logger.warn(`Template rendering failed, using original message: ${templateError.message}`);
+        result = await sendMessage(phoneNumber, message);
+      }
+    } else if (messageOptions?.buttons || messageOptions?.replyButtons) {
+      // Se há botões ou opções especiais, usar função apropriada
       result = await sendMessage(phoneNumber, message, null, messageOptions);
     } else {
       result = await sendMessage(phoneNumber, message);

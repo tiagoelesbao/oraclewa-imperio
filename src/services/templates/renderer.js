@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import logger from '../../utils/logger.js';
 import { getRandomVariation as getOrderPaidVariation } from './variations/order_paid_variations.js';
 import { getRandomVariation as getOrderExpiredVariation } from './variations/order_expired_variations.js';
+import { getButtonOptions } from './button-options.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,38 +113,54 @@ Obrigado por comprar conosco! 💚`
 };
 
 export const renderTemplate = async (templateName, data) => {
+  let messageContent;
+  
   // Usar variação aleatória para mensagens específicas
   if (templateName === 'order_paid' && Math.random() > 0.3) { // 70% chance de variação
     const variationTemplate = getOrderPaidVariation();
     const compiledVariation = Handlebars.compile(variationTemplate);
     logger.info('Using message variation for order_paid');
-    return compiledVariation(data);
-  }
-  
-  if (templateName === 'order_expired' && Math.random() > 0.3) { // 70% chance de variação
+    messageContent = compiledVariation(data);
+  } else if (templateName === 'order_expired' && Math.random() > 0.3) { // 70% chance de variação
     const variationTemplate = getOrderExpiredVariation();
     const compiledVariation = Handlebars.compile(variationTemplate);
     logger.info('Using message variation for order_expired');
-    return compiledVariation(data);
+    messageContent = compiledVariation(data);
+  } else {
+    // Usar template padrão
+    if (!templates[templateName]) {
+      await loadTemplates();
+    }
+    
+    const template = templates[templateName];
+    
+    if (!template) {
+      throw new Error(`Template not found: ${templateName}`);
+    }
+    
+    try {
+      messageContent = template(data);
+    } catch (error) {
+      logger.error(`Error rendering template ${templateName}:`, error);
+      throw error;
+    }
   }
   
-  // Usar template padrão
-  if (!templates[templateName]) {
-    await loadTemplates();
-  }
+  return messageContent;
+};
+
+// Nova função para renderizar template com opções de botão
+export const renderTemplateWithButtons = async (templateName, data) => {
+  const messageContent = await renderTemplate(templateName, data);
   
-  const template = templates[templateName];
+  // Obter opções de botão baseado no tipo de template
+  const buttonOptionsKey = templateName.toUpperCase();
+  const buttonOptions = getButtonOptions(buttonOptionsKey);
   
-  if (!template) {
-    throw new Error(`Template not found: ${templateName}`);
-  }
-  
-  try {
-    return template(data);
-  } catch (error) {
-    logger.error(`Error rendering template ${templateName}:`, error);
-    throw error;
-  }
+  return {
+    message: messageContent,
+    buttonOptions: buttonOptions
+  };
 };
 
 loadTemplates();

@@ -1,6 +1,8 @@
 import logger from '../utils/logger.js';
 import { addMessageToQueue } from '../services/queue/manager.js';
 import { renderTemplate } from '../services/templates/renderer.js';
+import { handleButtonClick as processButtonClick } from '../services/templates/button-options.js';
+import { sendMessage } from '../services/whatsapp/evolution-manager.js';
 
 // Conditional import for WebhookLog
 let WebhookLog;
@@ -345,6 +347,73 @@ export const handleVendaAprovada = async (req, res) => {
     logger.error('Error processing venda aprovada webhook:', error);
     res.status(500).json({
       error: 'Failed to process webhook'
+    });
+  }
+};
+
+// Handler para cliques de botões (Evolution API webhooks)
+export const handleButtonClick = async (req, res) => {
+  try {
+    logger.info('=== BUTTON CLICK WEBHOOK START ===');
+    logger.info('Button click data:', JSON.stringify(req.body, null, 2));
+    
+    const { data } = req.body;
+    
+    // Extrair informações do clique do botão (Evolution API v1.7.1)
+    const buttonId = data?.message?.buttonsResponseMessage?.selectedButtonId || 
+                     data?.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
+                     data?.selectedButtonId ||
+                     data?.buttonId;
+    
+    // Extrair número de telefone do formato Evolution API v1.7.1
+    let phoneNumber = data?.key?.remoteJid || data?.from || data?.phoneNumber;
+    if (phoneNumber && phoneNumber.includes('@s.whatsapp.net')) {
+      phoneNumber = phoneNumber.replace('@s.whatsapp.net', '');
+    }
+    const messageType = data?.messageType || 'unknown';
+    
+    if (!buttonId || !phoneNumber) {
+      logger.warn('Missing buttonId or phoneNumber in button click webhook');
+      return res.status(400).json({
+        error: 'Missing required fields: buttonId or phoneNumber'
+      });
+    }
+    
+    logger.info(`Button clicked: ${buttonId} by ${phoneNumber}`);
+    
+    // Skip database logging if SKIP_DB is true
+    if (process.env.SKIP_DB !== 'true' && WebhookLog) {
+      await WebhookLog.create({
+        type: 'button_click',
+        payload: req.body,
+        status: 'processing'
+      });
+    }
+    
+    // Processar clique do botão
+    const buttonResponse = await processButtonClick(buttonId, phoneNumber, messageType);
+    
+    // Se há uma resposta automática, enviar mensagem
+    if (buttonResponse.message && buttonResponse.action !== 'redirect') {
+      await sendMessage(phoneNumber, buttonResponse.message);
+      logger.info(`Sent automatic response for button click: ${buttonId}`);
+    }
+    
+    // Log específico para redirecionamentos de comunidade
+    if (buttonResponse.action === 'redirect' && buttonId === 'join_community') {
+      logger.info(`User ${phoneNumber} redirected to community via button click`);
+    }
+    
+    res.json({
+      success: true,
+      action: buttonResponse.action,
+      message: 'Button click processed successfully'
+    });
+    
+  } catch (error) {
+    logger.error('Error processing button click webhook:', error);
+    res.status(500).json({
+      error: 'Failed to process button click'
     });
   }
 };

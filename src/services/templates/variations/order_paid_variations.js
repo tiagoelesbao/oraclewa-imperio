@@ -19,6 +19,10 @@ export const ORDER_PAID_VARIATIONS = [
 🍀 *Boa sorte!*
 💚 *Obrigado pela confiança!*
 
+🎯 *Participe da nossa comunidade VIP:*
+👥 Entre no grupo exclusivo de ganhadores!
+🔗 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF?mode=ac_t
+
 *Império Premiações* 🏆`
   },
   {
@@ -36,6 +40,10 @@ export const ORDER_PAID_VARIATIONS = [
 🤞 *Dedos cruzados para você!*
 📞 Dúvidas? Pode me chamar!
 
+🎯 *Participe da nossa comunidade VIP:*
+👥 Entre no grupo exclusivo de ganhadores!
+🔗 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF?mode=ac_t
+
 *Império Premiações* ✨`
   },
   {
@@ -52,6 +60,10 @@ export const ORDER_PAID_VARIATIONS = [
 📊 *Sorteio oficial pela Loteria Federal*
 
 🌟 *Que a sorte esteja com você!*
+
+🎯 *Participe da nossa comunidade VIP:*
+👥 Entre no grupo exclusivo de ganhadores!
+🔗 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF?mode=ac_t
 
 *Equipe Império* 🎰`
   }
