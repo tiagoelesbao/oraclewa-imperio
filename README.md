@@ -1,84 +1,149 @@
-# OracleWA - Sistema de Automação WhatsApp
+# OracleWA - Sistema de Recuperação de Pedidos Expirados
 
-Sistema avançado de automação para WhatsApp Business com estratégias anti-ban e gestão inteligente de pools.
+Sistema automatizado para recuperação de carrinho abandonado via WhatsApp, desenvolvido para o cliente Império, integrando com Evolution API.
 
-## 🚀 Status Atual do Projeto
+## 📋 Status Atual
 
-- **Versão**: 2.2.0
-- **Status**: OPERACIONAL - Modo Emergencial
-- **Última atualização**: 01/08/2025
-- **Números ativos**: 1 (imperio1)
-- **Capacidade**: 800 msgs/dia (limitado por segurança)
-- **Volume solicitado**: 2000 msgs/dia
-- **Sobrecarga**: 150%
+**🟢 Sistema Operacional** 
+- Deploy ativo no Railway
+- 4 instâncias Evolution API rodando
+- Mensagens sendo enviadas com sucesso
+- Sistema de anti-ban implementado e funcional
 
-## ⚠️ **SITUAÇÃO CRÍTICA**
+**⚠️ Ajuste Temporário**
+- Verificação de horário comercial desabilitada (04/08/2025)
+- Sistema permite envios 24h devido a problemas com fuso horário
 
-Sistema operando com 1 número apenas. **NECESSÁRIO**:
-1. Adquirir 2-3 números WhatsApp Business
-2. Implementar pool system (código já pronto)
-3. Reduzir risco de ponto único de falha
+## 🚀 Acesso Rápido
 
-## 🛡️ **Sistemas Anti-Ban Implementados**
+### URLs de Produção
+- **Sistema Principal**: https://oraclewa-imperio-production.up.railway.app
+- **Evolution API 1**: https://evolution-oraclewa-01-production.up.railway.app
+- **Evolution API 2**: https://evolution-oraclewa-02-production.up.railway.app
+- **Evolution API 3**: https://evolution-oraclewa-03-production.up.railway.app
+- **Evolution API 4**: https://evolution-oraclewa-04-production.up.railway.app
 
-✅ **Warmup Manager**: Aquecimento gradual de 7 dias  
-✅ **Rate Limiting**: 45-90s entre mensagens  
-✅ **Horário Comercial**: 9h-20h apenas  
-✅ **Variações de Mensagem**: 3 templates por tipo  
-✅ **Cooldown Destinatários**: 24h entre campanhas  
-✅ **Detecção Automática**: Adapta-se ao número de instâncias  
+### Credenciais
+- **API Key Sistema**: `sk-imperio-7h8k9m2n3p4q5r6s`
+- **Evolution Global Key**: `B6D711FCDE4D4FD5936544120E713976`
 
-## 📋 **Documentação**
+## 📚 Documentação
 
-### **Situação Atual e Próximos Passos**
-- [`SITUACAO_ATUAL_COMPLETA.md`](SITUACAO_ATUAL_COMPLETA.md) - Análise completa da situação
-- [`PROXIMOS_PASSOS_PRATICOS.md`](PROXIMOS_PASSOS_PRATICOS.md) - Ações imediatas a fazer
+### Para Começar
+1. [**GUIA_COMPLETO_USO.md**](documentation/GUIA_COMPLETO_USO.md) - Como usar o sistema após deploy
+2. [**STATUS_ATUAL_CONSOLIDADO.md**](documentation/current/STATUS_ATUAL_CONSOLIDADO.md) - Status detalhado do sistema
 
-### **Planejamento Estratégico**
-- [`PLANEJAMENTO_ESTRATEGICO_ORACLEWA.md`](PLANEJAMENTO_ESTRATEGICO_ORACLEWA.md) - Roadmap completo
-- [`GUIA_IMPLEMENTACAO_POOLS.md`](GUIA_IMPLEMENTACAO_POOLS.md) - Sistema de pools (futuro)
-- [`ESTRATEGIAS_ANTI_BAN.md`](ESTRATEGIAS_ANTI_BAN.md) - Medidas implementadas
+### Planejamento e Estratégia
+- [**ROADMAP_EXECUTIVO.md**](documentation/current/ROADMAP_EXECUTIVO.md) - Planejamento 30 dias
+- [**ACAO_AMANHA_02_08.md**](documentation/current/ACAO_AMANHA_02_08.md) - Ações imediatas
+- [**PLANEJAMENTO_ESTRATEGICO_ORACLEWA.md**](documentation/current/PLANEJAMENTO_ESTRATEGICO_ORACLEWA.md) - Visão de longo prazo
 
-### **Documentação Técnica**
-- [`documentation/`](documentation/) - Guias de setup, deploy e configuração
+### Documentação Técnica
+- [**ESTRATEGIAS_ANTI_BAN.md**](documentation/current/ESTRATEGIAS_ANTI_BAN.md) - Sistema anti-ban completo
+- [**WEBHOOK_SETUP.md**](documentation/WEBHOOK_SETUP.md) - Configuração de webhooks
+- [**GUIA_IMPLEMENTACAO_POOLS.md**](documentation/current/GUIA_IMPLEMENTACAO_POOLS.md) - Múltiplos números
 
-## 🔧 **Arquitetura Atual**
+### Deploy e Infraestrutura
+- [**DEPLOY_GUIDE.md**](documentation/DEPLOY_GUIDE.md) - Deploy no Railway
+- [**HETZNER_PASSO_A_PASSO.md**](documentation/HETZNER_PASSO_A_PASSO.md) - VPS próprio
+
+## 🔧 Arquitetura
 
 ```
-                                                              
-   Império Panel     →  OracleWA API        →  Evolution API  
-   (Webhooks)           (Railway)              (Hetzner)     
-                                                              
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   WooCommerce   │────▶│   OracleWA API   │────▶│  Evolution API  │
+│    (Webhook)    │     │   (Node.js)      │     │  (4 instâncias) │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
                                │
                                ▼
-                        1 Número WhatsApp
-                        (imperio1)
+                        ┌──────────────┐
+                        │    Redis     │
+                        │ Rate Limit   │
+                        └──────────────┘
 ```
 
-## 🎯 **Próxima Ação Crítica**
+## ⚡ Quick Start
 
-**VOCÊ DEVE FAZER HOJE:**
+### 1. Configurar Webhook no WooCommerce
+```bash
+URL: https://oraclewa-imperio-production.up.railway.app/webhook/order-expired
+Headers:
+  x-api-key: sk-imperio-7h8k9m2n3p4q5r6s
+  Content-Type: application/json
+```
 
-1. **Implementar limite emergencial**: 800 msgs/dia
-2. **Adquirir 2-3 números** WhatsApp Business
-3. **Monitorar intensivamente** por 7 dias
+### 2. Testar Envio
+```bash
+curl -X POST https://oraclewa-imperio-production.up.railway.app/message/send \
+  -H "x-api-key: sk-imperio-7h8k9m2n3p4q5r6s" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phoneNumber": "5511999999999",
+    "message": "Teste de mensagem"
+  }'
+```
 
-Veja [`PROXIMOS_PASSOS_PRATICOS.md`](PROXIMOS_PASSOS_PRATICOS.md) para instruções detalhadas.
+## 📊 Limites e Capacidade
 
-## 📊 **Métricas de Sucesso**
+- **Por número**: 50 mensagens/dia
+- **Por hora**: 5 mensagens/hora/número
+- **Total sistema**: 200 mensagens/dia (4 números)
+- **Delay entre mensagens**: 30-90 segundos
 
-- **Taxa de entrega**: >95%
-- **Zero bans**: 7+ dias consecutivos
-- **Uptime**: >99.5%
-- **Latência**: <2 minutos
+## 🛠️ Manutenção
 
-## 🚨 **Alertas Ativos**
+### Logs
+```bash
+# Ver logs no Railway
+railway logs -s oraclewa-imperio
 
-- ⚠️ **Volume 2x acima da capacidade segura**
-- ⚠️ **Ponto único de falha (1 número)**
-- ⚠️ **Risco de ban elevado sem diversificação**
+# Ver logs específicos
+railway logs -s evolution-oraclewa-01
+```
+
+### Monitoramento
+- Dashboard Railway: https://railway.app/project/[PROJECT_ID]
+- Métricas em tempo real disponíveis
+
+## 🚨 Troubleshooting
+
+### Mensagem não enviada
+1. Verificar logs do sistema
+2. Confirmar número no formato correto (5511999999999)
+3. Verificar limites de rate
+4. Verificar status das instâncias Evolution
+
+### Webhook não funciona
+1. Confirmar URL e API key
+2. Verificar logs de webhook
+3. Testar com curl primeiro
+
+## 📞 Próximos Passos
+
+1. **Imediato (Esta semana)**
+   - [ ] Adquirir 12 números WhatsApp
+   - [ ] Implementar pool de números
+   - [ ] Reativar verificação de horário comercial
+
+2. **Curto Prazo (30 dias)**
+   - [ ] Migrar para VPS próprio (Hetzner)
+   - [ ] Implementar dashboard de métricas
+   - [ ] Sistema de templates dinâmicos
+
+3. **Longo Prazo**
+   - [ ] Transformar em SaaS multi-tenant
+   - [ ] IA para personalização de mensagens
+   - [ ] Integração com múltiplos e-commerces
+
+## 🤝 Suporte
+
+Para questões técnicas ou problemas:
+1. Verificar documentação completa em `/documentation`
+2. Consultar logs do sistema
+3. Contatar equipe de desenvolvimento
 
 ---
 
-**Última revisão**: 01/08/2025  
-**Status**: Sistema funcional mas em risco - Ação imediata necessária
+**Última atualização**: 04/08/2025 19:35
+**Versão**: 2.3.0
+**Status**: Produção
