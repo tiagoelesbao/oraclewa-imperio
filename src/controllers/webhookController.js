@@ -4,6 +4,30 @@ import { renderTemplate } from '../services/templates/renderer.js';
 import { handleButtonClick as processButtonClick } from '../services/templates/button-options.js';
 import { sendMessage } from '../services/whatsapp/evolution-manager.js';
 
+// Function to normalize phone numbers from different formats
+const normalizePhoneNumber = (phone) => {
+  // Remove all non-numeric characters
+  let normalized = phone.replace(/\D/g, '');
+  
+  // If it doesn't start with country code, add Brazil (55)
+  if (!normalized.startsWith('55') && normalized.length >= 10) {
+    normalized = '55' + normalized;
+  }
+  
+  // Ensure it has the correct format for WhatsApp (55 + DDD + number)
+  if (normalized.length === 12 && normalized.startsWith('55')) {
+    // Add the 9 digit if missing for mobile numbers (55 + 2 digits DDD + 8 digits = 55 + 2 + 9 + 8)
+    const ddd = normalized.substring(2, 4);
+    const number = normalized.substring(4);
+    if (number.length === 8 && !number.startsWith('9')) {
+      normalized = '55' + ddd + '9' + number;
+    }
+  }
+  
+  logger.info(`Phone normalized: ${phone} -> ${normalized}`);
+  return normalized;
+};
+
 // Conditional import for WebhookLog
 let WebhookLog;
 if (process.env.SKIP_DB !== 'true') {
@@ -34,10 +58,8 @@ export const handleOrderExpired = async (req, res) => {
 
     logger.info('Creating message data...');
     
-    // Normalize phone number format (remove + prefix if present)
-    const normalizedPhone = data.user.phone.startsWith('+') 
-      ? data.user.phone.substring(1) 
-      : data.user.phone;
+    // Normalize phone number format - handle multiple formats
+    const normalizedPhone = normalizePhoneNumber(data.user.phone);
     
     const messageData = {
       user: {
@@ -132,10 +154,8 @@ export const handleOrderPaid = async (req, res) => {
 
     logger.info('Creating message data...');
     
-    // Normalize phone number format (remove + prefix if present)
-    const normalizedPhone = data.user.phone.startsWith('+') 
-      ? data.user.phone.substring(1) 
-      : data.user.phone;
+    // Normalize phone number format - handle multiple formats
+    const normalizedPhone = normalizePhoneNumber(data.user.phone);
     
     const messageData = {
       user: {
