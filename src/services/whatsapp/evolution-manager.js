@@ -215,27 +215,26 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
     
     let response;
     
-    // Verificar se deve enviar mensagem com botões (Evolution API v1.7.1)
+    // Verificar se deve enviar mensagem com botões (Evolution API v2)
     if (messageOptions?.buttons && messageOptions.buttons.length > 0) {
-      // Enviar mensagem com botões usando Evolution API v1.7.1 (formato buttonMessage)
+      // Enviar mensagem com botões usando Evolution API v2 (novo formato)
       response = await instance.client.post('/message/sendButtons/' + instance.name, {
         number: formattedPhone,
-        buttonMessage: {
-          title: messageOptions.title || "🎉 PARABÉNS!",
-          text: message,
-          footerText: messageOptions.footer || "Império Premiações 🏆",
-          buttons: messageOptions.buttons.map(button => ({
-            buttonId: button.id || button.title.toLowerCase().replace(/\s+/g, '_'),
-            buttonText: button.displayText || button.title,
-            type: 1
-          })),
-          headerType: 1
-        }
+        title: messageOptions.title || "🎉 PARABÉNS!",
+        description: message,
+        footer: messageOptions.footer || "Império Premiações 🏆",
+        buttons: messageOptions.buttons.map(button => ({
+          title: button.displayText || button.title,
+          displayText: button.displayText || button.title,
+          id: button.id || button.title.toLowerCase().replace(/\s+/g, '_')
+        })),
+        delay: 1000,
+        linkPreview: false
       });
       
       logger.info(`Button message sent successfully via ${instance.name} to ${phoneNumber}`, {
         buttonCount: messageOptions.buttons.length,
-        format: 'v1.7.1_buttonMessage'
+        format: 'v2_sendButtons'
       });
     } else if (messageOptions?.listMessage) {
       // Enviar mensagem de lista usando Evolution API v1.7.1
