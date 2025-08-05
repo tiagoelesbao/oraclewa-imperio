@@ -216,26 +216,40 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
     let response;
     
     // Verificar se deve enviar mensagem com botões (Evolution API v2)
+    // NOTA: Botões interativos não chegam no celular, usando mensagem de texto com links
     if (messageOptions?.buttons && messageOptions.buttons.length > 0) {
-      // Enviar mensagem com botões usando Evolution API v2 (novo formato)
-      response = await instance.client.post('/message/sendButtons/' + instance.name, {
-        number: formattedPhone,
-        title: messageOptions.title || "🎉 PARABÉNS!",
-        description: message,
-        footer: messageOptions.footer || "Império Premiações 🏆",
-        buttons: messageOptions.buttons.map(button => ({
-          title: button.displayText || button.title,
-          displayText: button.displayText || button.title,
-          id: button.id || button.title.toLowerCase().replace(/\s+/g, '_'),
-          type: "reply"
-        })),
-        delay: 1000,
-        linkPreview: false
+      // Converter botões para texto com links clicáveis
+      let buttonText = '\n\n📱 *OPÇÕES DISPONÍVEIS:*\n';
+      
+      messageOptions.buttons.forEach((button, index) => {
+        if (button.id === 'join_community') {
+          buttonText += `\n🔗 *${button.displayText || button.title}*\n`;
+          buttonText += '👆 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF\n';
+        } else if (button.id === 'confirm_receipt') {
+          buttonText += `\n✅ Para confirmar o recebimento, responda: *"OK"*\n`;
+        } else {
+          buttonText += `\n${index + 1}️⃣ *${button.displayText || button.title}*\n`;
+        }
       });
       
-      logger.info(`Button message sent successfully via ${instance.name} to ${phoneNumber}`, {
+      // Adicionar instruções
+      buttonText += '\n💬 *Como usar:*';
+      buttonText += '\n• Clique no link para entrar na comunidade';
+      buttonText += '\n• Digite "OK" para confirmar recebimento';
+      
+      const fullMessage = message + buttonText;
+      
+      // Enviar como mensagem de texto normal
+      response = await instance.client.post('/message/sendText/' + instance.name, {
+        number: formattedPhone,
+        textMessage: {
+          text: fullMessage
+        }
+      });
+      
+      logger.info(`Text message with links sent successfully via ${instance.name} to ${phoneNumber}`, {
         buttonCount: messageOptions.buttons.length,
-        format: 'v2_sendButtons'
+        format: 'v2_textWithLinks'
       });
     } else if (messageOptions?.listMessage) {
       // Enviar mensagem de lista usando Evolution API v1.7.1
