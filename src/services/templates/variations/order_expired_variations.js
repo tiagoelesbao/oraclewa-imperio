@@ -33,7 +33,7 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 
 📋 *Informações:*
 • Sorteio: {{product.title}}
-• Valor: R$ {{total}}
+• Valor: R$ {{total}},00
 • Vence: {{expirationAt}}
 
 💰 *Prêmio de R$ 200.000,00 te esperando!*
@@ -50,7 +50,7 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 
 ⚠️ *Última chance para suas cotas!*
 
-🎟️ {{quantity}} cotas - R$ {{total}}
+🎟️ {{quantity}} cotas - R$ {{total}},00
 📅 Expira: {{expirationAt}}
 
 🏆 *Concorra a R$ 200.000,00!*
