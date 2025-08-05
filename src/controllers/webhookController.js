@@ -132,33 +132,25 @@ export const handleOrderPaid = async (req, res) => {
     };
     logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
-    logger.info('Rendering template...');
-    const message = await renderTemplate('order_paid', messageData);
-    logger.info('Template rendered successfully, message length:', message ? message.length : 0);
-    
-    // Adicionar botão de resposta rápida
-    const messageOptions = {
-      replyButtons: [
-        {
-          id: 'confirm_receipt',
-          title: 'Confirmar Recebimento'
-        }
-      ]
-    };
-
-    logger.info('Adding message to queue...');
+    logger.info('Adding message to queue with interactive buttons...');
     logger.info('Phone number:', data.user.phone);
     
+    // Usar o sistema de renderização com botões interativos
     await addMessageToQueue({
       phoneNumber: data.user.phone,
-      message,
-      messageOptions,
+      message: '', // Will be rendered by messageProcessor
+      messageOptions: null, // Will be handled by template renderer
       type: 'order_paid',
       customerId: data.user.email || data.user.phone || data.id,
       metadata: {
         orderId: data.id,
         orderTotal: data.total,
-        replyButtons: messageOptions.replyButtons,
+        user: data.user,
+        product: data.product,
+        quantity: data.quantity,
+        total: data.total,
+        createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+        id: data.id,
         timestamp: new Date().toISOString() // Para verificar frescor da mensagem
       }
     }, {

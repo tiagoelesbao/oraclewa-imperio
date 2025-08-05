@@ -189,6 +189,38 @@ router.post('/order-paid',
   handleOrderPaid
 );
 
+// Teste direto com dados completos para seu número
+router.post('/test-order-paid-complete', async (req, res) => {
+  try {
+    console.log('=== TESTE ORDER PAID COMPLETO ===');
+    
+    const testData = {
+      user: { 
+        name: req.body.user?.name || "Teste Botões", 
+        phone: req.body.user?.phone || "5511959761948",
+        email: req.body.user?.email || "teste@teste.com"
+      },
+      product: { 
+        title: req.body.product?.title || "🏆 Sorteio Império - R$ 200.000" 
+      },
+      quantity: req.body.quantity || 2,
+      total: req.body.total || "25.00",
+      id: req.body.id || "TEST-" + Date.now(),
+      createdAt: new Date().toISOString()
+    };
+    
+    console.log('Dados de teste:', JSON.stringify(testData, null, 2));
+    
+    // Simular dados validados
+    req.validatedData = { data: testData };
+    
+    await handleOrderPaid(req, res);
+  } catch (error) {
+    console.error('Erro no teste:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Endpoints antigos (manter compatibilidade)
 router.post('/carrinho-abandonado', 
   validateWebhook,

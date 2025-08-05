@@ -8,7 +8,7 @@ export const ORDER_PAID_VARIATIONS = [
 📦 *Detalhes do seu pedido:*
 • *Produto:* {{product.title}}
 • *Quantidade:* {{quantity}} cotas
-• *Total pago:* R$ {{total}}
+• *Total pago:* R$ {{total}},00
 
 🎰 *Você está concorrendo a R$ 200.000,00!*
 
@@ -32,7 +32,7 @@ export const ORDER_PAID_VARIATIONS = [
 
 📋 *Resumo:*
 🎟️ {{quantity}} cotas - {{product.title}}
-💰 Valor: R$ {{total}}
+💰 Valor: R$ {{total}},00
 
 🎯 *Prêmio: R$ 200.000,00*
 📅 Sorteio: Data será informada em breve
@@ -54,7 +54,7 @@ export const ORDER_PAID_VARIATIONS = [
 🎫 *Suas {{quantity}} cotas para:*
 {{product.title}}
 
-💵 *Investimento:* R$ {{total}}
+💵 *Investimento:* R$ {{total}},00
 💰 *Concorrendo a:* R$ 200.000,00
 
 📊 *Sorteio oficial pela Loteria Federal*
