@@ -33,9 +33,30 @@ export class WhatsAppWarmupManager {
    * TEMPORARIAMENTE DESABILITADO - retorna limite alto
    */
   async getDailyLimit(instanceName) {
-    // 🔧 DESABILITADO TEMPORARIAMENTE - sem limite diário progressivo
-    logger.info('📊 Limite diário progressivo DESABILITADO - usando limite fixo de 5000');
+    // 🔧 TEMPORARIAMENTE DESABILITADO - sem limite diário progressivo
+    logger.info('📊 Limite diário progressivo TEMPORARIAMENTE DESABILITADO - usando limite fixo de 5000');
     return 5000; // Limite alto para não bloquear
+    
+    /* CÓDIGO ORIGINAL (DESATIVADO TEMPORARIAMENTE):
+    if (!this.redis) return 1000;
+    
+    const warmupKey = `warmup:${instanceName}`;
+    const startDate = await this.redis.get(warmupKey);
+    
+    if (!startDate) {
+      await this.redis.set(warmupKey, Date.now().toString());
+      return 20;
+    }
+    
+    const daysSinceStart = Math.floor((Date.now() - parseInt(startDate)) / (1000 * 60 * 60 * 24));
+    const warmupLimits = [20, 40, 80, 160, 320, 500, 600];
+    
+    if (daysSinceStart >= warmupLimits.length) {
+      return 600;
+    }
+    
+    return warmupLimits[daysSinceStart];
+    */
   }
 
   /**
@@ -57,7 +78,7 @@ export class WhatsAppWarmupManager {
     //   logger.warn(`🚫 Fora do horário comercial: ${hour}h - mensagem bloqueada`);
     //   return false;
     // }
-    logger.info(`⏰ Verificação de horário comercial DESABILITADA - permitindo envio às ${hour}h`);
+    logger.info(`⏰ Verificação de horário comercial TEMPORARIAMENTE DESABILITADA - permitindo envio às ${hour}h`);
     
     if (!this.redis) {
       logger.info('✅ Horário comercial OK - Redis desabilitado, permitindo envio');
@@ -205,9 +226,27 @@ export class WhatsAppWarmupManager {
    * TEMPORARIAMENTE DESABILITADO - sempre retorna true
    */
   async canMessageRecipient(phoneNumber) {
-    // 🔧 DESABILITADO TEMPORARIAMENTE - sem cooldown de 24h
-    logger.info('🔓 Cooldown de 24h DESABILITADO - permitindo reenvio para qualquer número');
+    // 🔧 TEMPORARIAMENTE DESABILITADO - sem cooldown de 24h
+    logger.info('🔓 Cooldown de 24h TEMPORARIAMENTE DESABILITADO - permitindo reenvio para qualquer número');
     return true;
+    
+    /* CÓDIGO ORIGINAL (DESATIVADO TEMPORARIAMENTE):
+    if (!this.redis) return true;
+    
+    const recipientKey = `recipient:${phoneNumber}`;
+    const lastContact = await this.redis.get(recipientKey);
+    
+    if (!lastContact) return true;
+    
+    const hoursSinceLastContact = (Date.now() - parseInt(lastContact)) / (1000 * 60 * 60);
+    
+    if (hoursSinceLastContact < 24) {
+      logger.warn(`Número ${phoneNumber} contactado há menos de 24h`);
+      return false;
+    }
+    
+    return true;
+    */
   }
 
   /**
