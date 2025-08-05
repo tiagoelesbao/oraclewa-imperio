@@ -215,41 +215,44 @@ export const sendMessage = async (phoneNumber, message, instanceName = null, mes
     
     let response;
     
-    // Verificar se deve enviar mensagem com botões (Evolution API v2)
-    // NOTA: Botões interativos não chegam no celular, usando mensagem de texto com links
+    // Verificar se deve enviar mensagem com botões
+    // SOLUÇÃO: Botões interativos do Evolution API (Baileys) não chegam no celular
+    // Usando mensagem de texto otimizada com links e CTAs claros
     if (messageOptions?.buttons && messageOptions.buttons.length > 0) {
-      // Converter botões para texto com links clicáveis
-      let buttonText = '\n\n📱 *OPÇÕES DISPONÍVEIS:*\n';
+      // Converter botões para mensagem de texto otimizada
+      let enhancedMessage = message + '\n\n';
+      
+      // Adicionar seção de ações
+      enhancedMessage += '🎯 *PRÓXIMOS PASSOS:*\n\n';
       
       messageOptions.buttons.forEach((button, index) => {
         if (button.id === 'join_community') {
-          buttonText += `\n🔗 *${button.displayText || button.title}*\n`;
-          buttonText += '👆 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF\n';
+          enhancedMessage += '🔗 *ENTRE NA NOSSA COMUNIDADE VIP*\n';
+          enhancedMessage += 'Acesse o link abaixo para participar:\n';
+          enhancedMessage += '👉 https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF\n\n';
         } else if (button.id === 'confirm_receipt') {
-          buttonText += `\n✅ Para confirmar o recebimento, responda: *"OK"*\n`;
-        } else {
-          buttonText += `\n${index + 1}️⃣ *${button.displayText || button.title}*\n`;
+          enhancedMessage += '✅ *CONFIRME SEU RECEBIMENTO*\n';
+          enhancedMessage += 'Responda com *"OK"* para confirmar\n\n';
         }
       });
       
-      // Adicionar instruções
-      buttonText += '\n💬 *Como usar:*';
-      buttonText += '\n• Clique no link para entrar na comunidade';
-      buttonText += '\n• Digite "OK" para confirmar recebimento';
+      // Adicionar rodapé motivacional
+      enhancedMessage += '🍀 *Boa sorte no sorteio!*\n';
+      enhancedMessage += '📱 Salve nosso contato para atualizações\n\n';
+      enhancedMessage += '_Império Premiações - Realizando sonhos_ 🏆';
       
-      const fullMessage = message + buttonText;
-      
-      // Enviar como mensagem de texto normal
+      // Enviar como mensagem de texto otimizada
       response = await instance.client.post('/message/sendText/' + instance.name, {
         number: formattedPhone,
         textMessage: {
-          text: fullMessage
+          text: enhancedMessage
         }
       });
       
-      logger.info(`Text message with links sent successfully via ${instance.name} to ${phoneNumber}`, {
+      logger.info(`Enhanced text message sent successfully via ${instance.name} to ${phoneNumber}`, {
         buttonCount: messageOptions.buttons.length,
-        format: 'v2_textWithLinks'
+        format: 'enhanced_text_message',
+        note: 'Interactive buttons not supported by Baileys - using optimized text format'
       });
     } else if (messageOptions?.listMessage) {
       // Enviar mensagem de lista usando Evolution API v1.7.1
