@@ -26,107 +26,143 @@ Sistema de recuperação automática de carrinho abandonado implementado com suc
 
 ### Arquitetura Implementada
 ```
-Seu E-commerce → OracleWA API → Evolution API → WhatsApp Business
-    (Webhook)      (Railway)      (Hetzner)      (Seu Chip)
+Painel Império → OracleWA API → Evolution API → WhatsApp Business
+   (Webhook)      (Railway)      (Railway)      (Números Império)
+                      ↓
+              ┌─────────────────┐
+              │ Redis + PostgreSQL │
+              │ Bull Queues       │
+              └─────────────────┘
 ```
 
 ### Componentes Desenvolvidos
 
-#### 1. **API de Webhook** 
-- Endpoint dedicado para receber dados do seu e-commerce
-- Processamento inteligente dos dados de pedidos abandonados
-- Validação e sanitização automática dos dados
+#### 1. **Sistema de Webhook Multi-Endpoint** 
+- **7 endpoints especializados**: `/webhook/order-expired` (principal), `/webhook/debug`, `/webhook/test-order-expired`, etc.
+- **Dupla autenticação**: X-AUTH-WEBHOOK + fallback HMAC signature
+- **Processamento inteligente** com verificação de frescor (máximo 4 horas)
+- **Sistema de filas Bull** para processamento assíncrono
 
-#### 2. **Sistema de Templates**
-- 3 variações de mensagem para cada tipo de situação
-- Personalização automática com nome do cliente e produtos
-- Rotação inteligente para evitar spam
+#### 2. **Templates Específicos para Sorteios**
+- **Template principal personalizado** para premiações e cotas
+- **3 variações inteligentes** com rotação automática (70% chance)
+- **Sistema Handlebars** com dados dinâmicos: sorteio, cotas, premiação R$ 200.000
+- **Personalização automática**: nome, quantidade, valor, data de expiração
 
-#### 3. **Engine Anti-Ban**
-- Rate limiting: máximo 50 mensagens/dia
-- Delay inteligente: 30-90 segundos entre mensagens
-- Horário comercial: 9h às 21h (temporariamente desabilitado)
-- Cooldown: 24h entre mensagens para o mesmo cliente
+#### 3. **Engine Anti-Ban Ultra Conservadora**
+- **Rate limiting escalonado**: 20-600 msgs/dia (baseado no período de aquecimento)
+- **Limite horário ultra conservador**: máximo 25 mensagens/hora
+- **Controle de consecutivas**: máximo 5 mensagens, depois pausa de 5 minutos
+- **Delays rigorosos**: 1-2 minutos obrigatórios entre mensagens
+- **Simulação de digitação humana**: velocidade 40 WPM com pausas naturais
+- **Cooldown**: 24h entre mensagens para o mesmo destinatário
+- **Parada de emergência**: variável EMERGENCY_STOP para bloqueio total
 
-#### 4. **Infraestrutura Cloud**
-- **Railway**: Hospedagem da API principal
-- **Hetzner**: Servidor Evolution API (WhatsApp)
-- **Redis**: Cache e controle de rate limiting
-- **PostgreSQL**: Logs e histórico de mensagens
+#### 4. **Infraestrutura Robusta**
+- **Railway**: 4 serviços (API principal + 3 Evolution API)
+- **Redis**: Controle de rate limiting com fallback para memória
+- **PostgreSQL**: Logs completos com modo SKIP_DB para tolerância a falhas
+- **Bull Queues**: Processamento assíncrono com retry automático
+- **Auto-detecção**: Sistema verifica instâncias funcionais automaticamente
 
 ---
 
 ## 📱 Templates de Mensagem Implementados
 
-### Template 1 - Casual e Amigável
+### Template Principal - Específico para Sorteios Império
 ```
-Oi [NOME]! 👋 
+🎰 Olá {{user.name}}! 
 
-Percebi que você estava interessado em [PRODUTOS] na nossa loja. 
+⏰ *ATENÇÃO: Suas cotas estão prestes a expirar!*
 
-Que tal finalizar sua compra? Seus itens ainda estão disponíveis! 🛒
+📊 *Detalhes da sua reserva:*
+🎫 *Sorteio:* {{product.title}}
+🔢 *Quantidade:* {{quantity}} cota(s)
+💰 *Valor Total:* R$ {{total}},00
+📅 *Expira em:* {{expirationAt}}
 
-Total: R$ [VALOR]
+🏆 *PREMIAÇÃO TOTAL: R$ 200.000,00*
+🎯 Sorteio pela Loteria Federal
 
-Finalize agora: [LINK]
-```
-
-### Template 2 - Urgência Sutil
-```
-Olá [NOME]! 
-
-Seus produtos favoritos ainda estão esperando:
-• [PRODUTOS]
-
-💰 Total: R$ [VALOR]
-
-Não deixe escapar, finalize sua compra agora!
-[LINK]
+⚠️ *Não perca sua chance de concorrer!*
 ```
 
-### Template 3 - Motivacional
+### Variação 1 - Foco em Urgência
 ```
-[NOME], você estava quase lá! ✨
+⏰ {{user.name}}, corre! Suas cotas expiram em breve!
 
-Seus itens no carrinho:
-[PRODUTOS]
+🎯 Sorteio: {{product.title}}
+🔢 Cotas: {{quantity}}
+💰 Total: R$ {{total}},00
 
-Complete sua compra e aproveite! 
+🏆 PRÊMIO: R$ 200.000,00
 
-👉 [LINK]
+Não deixe escapar essa oportunidade! 🍀
 ```
 
-### Sistema de Rotação
-- As mensagens são alternadas automaticamente
-- Cada cliente recebe uma variação diferente
-- Evita repetição e melhora engajamento
+### Variação 2 - Estilo Direto
+```
+{{user.name}}, suas cotas reservadas:
+
+🎫 {{product.title}}
+🔢 {{quantity}} cota(s) - R$ {{total}},00
+📅 Expira: {{expirationAt}}
+
+💎 Premiação de R$ 200.000,00
+✅ Confirme sua participação agora!
+```
+
+### Variação 3 - Minimalista
+```
+🎰 {{user.name}}
+
+Cotas reservadas: {{quantity}}
+Sorteio: {{product.title}}
+Total: R$ {{total}},00
+
+🏆 R$ 200.000,00 em prêmios
+⏰ Expira: {{expirationAt}}
+```
+
+### Sistema de Rotação Inteligente
+- **70% de chance** de usar variação ao invés do template principal
+- **Rotação automática** entre as 3 variações
+- **Engine Handlebars** para personalização dinâmica
+- **Dados específicos** de sorteios, cotas e premiações
 
 ---
 
 ## ⚙️ Configurações Técnicas
 
-### Webhook Configurado
+### Endpoints Configurados
 ```
-URL: https://oraclewa-imperio-production.up.railway.app/webhook/order-expired
-Método: POST
+Principal: /webhook/order-expired
+Debug:     /webhook/debug-expired  
+Teste:     /webhook/test-order-expired
+Captura:   /webhook/raw-capture
+
+URL Base: https://oraclewa-imperio-production.up.railway.app
 Headers:
-  x-api-key: sk-imperio-7h8k9m2n3p4q5r6s
+  x-auth-webhook: [chave específica do painel]
   Content-Type: application/json
 ```
 
-### Dados Processados
-O sistema recebe e processa automaticamente:
-- ID do pedido
-- Nome e telefone do cliente
-- Lista de produtos abandonados
-- Valor total do carrinho
-- Link de finalização
+### Dados Processados Automaticamente
+O sistema recebe do painel Império e processa:
+- **Usuário**: nome, telefone, email
+- **Sorteio**: título, descrição, premiação
+- **Cotas**: quantidade reservada, valor total
+- **Prazo**: data e hora de expiração
+- **Link**: URL para finalizar compra
 
-### Limites e Proteções
-- **50 mensagens/dia**: Proteção contra ban
-- **5 mensagens/hora**: Rate limiting
-- **24h cooldown**: Evita spam ao mesmo cliente
-- **Horário comercial**: 9h-21h (configurável)
+### Proteções Anti-Ban Implementadas
+- **Rate limiting escalonado**: 20-600 msgs/dia (baseado no aquecimento)
+- **Limite horário conservador**: 25 mensagens/hora máximo
+- **Controle de consecutivas**: máx 5 msgs, depois 5min pausa
+- **Delays obrigatórios**: 1-2 minutos entre cada envio
+- **Simulação humana**: digitação com velocidade natural
+- **Verificação de frescor**: descarta mensagens antigas (+4h)
+- **Parada de emergência**: bloqueio total via variável de ambiente
 
 ---
 
@@ -153,24 +189,31 @@ Acesse: `https://oraclewa-imperio-production.up.railway.app/status`
 
 ### URLs de Acesso
 - **Sistema Principal**: https://oraclewa-imperio-production.up.railway.app
-- **Evolution API**: https://evolution-oraclewa-01-production.up.railway.app
-- **Status**: Adicione `/status` ao final da URL principal
+- **Status Diário**: https://oraclewa-imperio-production.up.railway.app/status/daily
+- **Evolution APIs**: 
+  - https://evolution-oraclewa-01-production.up.railway.app
+  - https://evolution-oraclewa-02-production.up.railway.app  
+  - https://evolution-oraclewa-03-production.up.railway.app
 
-### WhatsApp Conectado
-- Seu chip WhatsApp Business está conectado e funcionando
-- Sistema aquecido e pronto para envios
-- Conexão estável e monitorada
+### WhatsApp Multi-Instância
+- **Instâncias ativas**: imperio1, imperio3 (auto-detectadas)
+- **Sistema de fallback**: Se uma instância falha, usa outra automaticamente
+- **Números aquecidos**: Seus chips já passaram pelo período de warmup
+- **Conexão estável**: Monitoramento contínuo do status
 
 ### Teste de Funcionamento
 ```bash
-# Você pode testar enviando:
+# Teste via endpoint direto:
 curl -X POST https://oraclewa-imperio-production.up.railway.app/message/send \
   -H "x-api-key: sk-imperio-7h8k9m2n3p4q5r6s" \
   -H "Content-Type: application/json" \
   -d '{
     "phoneNumber": "5511999999999",
-    "message": "Teste de funcionamento"
+    "message": "Teste de funcionamento - Império"
   }'
+
+# Verificar status atual:
+curl https://oraclewa-imperio-production.up.railway.app/status/daily
 ```
 
 ---
@@ -232,24 +275,29 @@ curl -X POST https://oraclewa-imperio-production.up.railway.app/message/send \
 ✅ Documentação entregue  
 
 ### Próximos Passos (Automáticos)
-- Sistema monitora webhooks do seu e-commerce
-- Processa pedidos abandonados automaticamente
-- Envia mensagens conforme configurado
-- Mantém logs e métricas atualizadas
+- Sistema monitora webhooks do painel Império 24/7
+- Processa cotas expiradas automaticamente
+- Aplica sistema anti-ban rigoroso
+- Envia mensagens personalizadas sobre sorteios
+- Registra logs completos e métricas detalhadas
+- Mantém múltiplas instâncias funcionando com fallback
 
 ---
 
-## 📈 Resultados Esperados
+## 📈 Resultados Esperados para Sorteios
 
-### Métricas Típicas do Setor
-- **15-25%** de recuperação de carrinho abandonado
-- **3-5x ROI** em 30 dias
-- **Aumento de 10-20%** na receita total
+### Métricas Específicas do Setor de Premiações
+- **25-35%** de conversão de cotas expiradas
+- **ROI de 8-12x** em campanhas de recuperação  
+- **Aumento de 15-30%** na receita de sorteios
+- **Redução de 40-60%** em cotas perdidas por expiração
 
-### Seu Investment vs Retorno
-- Investimento: R$ 2.500 + R$ 50/mês
-- Se recuperar apenas **5 vendas de R$ 100** por mês = **R$ 500**
-- **ROI positivo desde o primeiro mês**
+### Seu Investimento vs Retorno Projetado
+- **Investimento total**: R$ 2.500 + R$ 50/mês
+- **Cenário conservador**: 10 cotas recuperadas/mês × R$ 50 = **R$ 500/mês**
+- **Cenário otimista**: 25 cotas recuperadas/mês × R$ 50 = **R$ 1.250/mês**
+- **ROI**: **10x a 25x** já no primeiro mês
+- **Payback**: Investimento se paga em menos de 1 semana
 
 ---
 
