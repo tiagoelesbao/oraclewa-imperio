@@ -76,35 +76,29 @@ export const handleOrderExpired = async (req, res) => {
     };
     logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
-    logger.info('Rendering template...');
-    const message = await renderTemplate('order_expired', messageData);
-    logger.info('Template rendered successfully, message length:', message ? message.length : 0);
-    
-    // Apenas botão para acessar o site (recuperação de venda)
-    const messageOptions = {
-      buttons: [
-        {
-          type: 'url',
-          displayText: 'Acessar Site',
-          url: `https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK`
-        }
-      ]
-    };
-
-    logger.info('Adding message to queue...');
+    logger.info('Adding message to queue for template processing...');
     logger.info('Phone number:', normalizedPhone);
     
     await addMessageToQueue({
       phoneNumber: normalizedPhone,
-      message,
-      messageOptions,
+      message: '', // Will be rendered by messageProcessor
+      messageOptions: null, // Will be handled by template renderer
       type: 'order_expired',
       customerId: data.user.email || data.user.phone || data.id,
       metadata: {
         orderId: data.id,
         orderTotal: data.total,
-        expiresAt: data.expirationAt,
-        buttons: messageOptions.buttons,
+        user: {
+          ...data.user,
+          phone: normalizedPhone
+        },
+        product: data.product,
+        quantity: data.quantity,
+        total: data.total,
+        expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
+        pixCode: data.pixCode || '',
+        affiliate: data.affiliate || 'A0RJJ5L1QK',
+        id: data.id,
         timestamp: new Date().toISOString() // Para verificar frescor da mensagem
       }
     }, {
