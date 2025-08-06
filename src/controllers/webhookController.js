@@ -74,6 +74,15 @@ export const handleOrderExpired = async (req, res) => {
         orderTotal: data.total,
         expiresAt: data.expirationAt,
         buttons: messageOptions.buttons,
+        // ADD COMPLETE TEMPLATE DATA for messageProcessor
+        user: data.user,
+        product: data.product,
+        quantity: data.quantity,
+        total: data.total,
+        pixCode: data.pixCode || '',
+        expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
+        affiliate: data.affiliate || 'A0RJJ5L1QK',
+        id: data.id,
         timestamp: new Date().toISOString() // Para verificar frescor da mensagem
       }
     }, {
