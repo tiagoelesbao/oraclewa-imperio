@@ -272,7 +272,7 @@ router.post('/test-order-paid-complete', async (req, res) => {
         email: req.body.user?.email || "teste@teste.com"
       },
       product: { 
-        title: req.body.product?.title || "🏆 Sorteio Império - R$ 200.000" 
+        title: req.body.product?.title || "🏆 Sorteio Império - R$ 170.000" 
       },
       quantity: req.body.quantity || 2,
       total: req.body.total || "25.00",

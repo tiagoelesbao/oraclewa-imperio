@@ -11,7 +11,7 @@ export const ORDER_EXPIRED_VARIATIONS = [
 💰 *Valor Total:* R$ {{total}},00
 📅 *Expira em:* {{expirationAt}}
 
-🏆 *PREMIAÇÃO TOTAL: R$ 200.000,00*
+🏆 *PREMIAÇÃO TOTAL: R$ 170.000,00*
 🎯 Sorteio pela Loteria Federal
 
 ⚠️ *Não perca sua chance de concorrer!*
@@ -36,12 +36,12 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 • Valor: R$ {{total}},00
 • Vence: {{expirationAt}}
 
-💰 *Prêmio de R$ 200.000,00 te esperando!*
+💰 *Prêmio de R$ 170.000,00 te esperando!*
 
 ⚡ *Finalize agora:*
 https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK
 
-⏰ *TEMPO ESGOTANDO!* Não deixe R$ 200.000,00 passar!
+⏰ *TEMPO ESGOTANDO!* Não deixe R$ 170.000,00 passar!
 
 *Império Premiações* 🎲`
   },
@@ -53,7 +53,7 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 🎟️ {{quantity}} cotas - R$ {{total}},00
 📅 Expira: {{expirationAt}}
 
-🏆 *Concorra a R$ 200.000,00!*
+🏆 *Concorra a R$ 170.000,00!*
 
 🔗 *Garanta agora:*
 https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK

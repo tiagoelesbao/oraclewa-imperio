@@ -17,7 +17,7 @@ export const ORDER_PAID_VARIATIONS = [
 🏆 *PREMIAÇÃO*
 ━━━━━━━━━━━━━━━
 
-💵 *R$ 200.000,00*
+💵 *R$ 170.000,00*
 🎯 Loteria Federal
 
 ━━━━━━━━━━━━━━━
@@ -44,7 +44,7 @@ https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF
 ━━━━━━━━━━━━━━━
 
 🎯 *Concorrendo a:*
-💵 *R$ 200.000,00*
+💵 *R$ 170.000,00*
 
 ━━━━━━━━━━━━━━━
 
@@ -68,7 +68,7 @@ https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF
 ━━━━━━━━━━━━━━━
 
 💰 *Prêmio:*
-*R$ 200.000,00*
+*R$ 170.000,00*
 
 📊 Loteria Federal
 
