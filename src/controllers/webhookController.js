@@ -4,29 +4,6 @@ import { renderTemplate } from '../services/templates/renderer.js';
 import { handleButtonClick as processButtonClick } from '../services/templates/button-options.js';
 import { sendMessage } from '../services/whatsapp/evolution-manager.js';
 
-// Function to normalize phone numbers from different formats
-const normalizePhoneNumber = (phone) => {
-  // Remove all non-numeric characters
-  let normalized = phone.replace(/\D/g, '');
-  
-  // If it doesn't start with country code, add Brazil (55)
-  if (!normalized.startsWith('55') && normalized.length >= 10) {
-    normalized = '55' + normalized;
-  }
-  
-  // Ensure it has the correct format for WhatsApp (55 + DDD + number)
-  if (normalized.length === 12 && normalized.startsWith('55')) {
-    // Add the 9 digit if missing for mobile numbers (55 + 2 digits DDD + 8 digits = 55 + 2 + 9 + 8)
-    const ddd = normalized.substring(2, 4);
-    const number = normalized.substring(4);
-    if (number.length === 8 && !number.startsWith('9')) {
-      normalized = '55' + ddd + '9' + number;
-    }
-  }
-  
-  logger.info(`Phone normalized: ${phone} -> ${normalized}`);
-  return normalized;
-};
 
 // Conditional import for WebhookLog
 let WebhookLog;
@@ -73,13 +50,9 @@ export const handleOrderExpired = async (req, res) => {
     const message = await renderTemplate('order_expired', messageData);
     logger.info('Template rendered successfully, message length:', message ? message.length : 0);
     
-    // Adicionar suporte para botões
+    // Apenas botão para acessar o site (recuperação de venda)
     const messageOptions = {
       buttons: [
-        {
-          type: 'copy',
-          copyCode: data.pixCode || ''
-        },
         {
           type: 'url',
           displayText: 'Acessar Site',
@@ -88,17 +61,28 @@ export const handleOrderExpired = async (req, res) => {
       ]
     };
 
-    // SEND DIRECTLY - Skip queue entirely to avoid any queue-related issues
-    logger.info('Sending message directly to avoid queue issues...');
+    logger.info('Adding message to queue...');
     logger.info('Phone number:', data.user.phone);
     
-    try {
-      const result = await sendMessage(data.user.phone, message);
-      logger.info('Order expired message sent successfully:', result);
-    } catch (sendError) {
-      logger.error('Error sending order expired message:', sendError);
-      throw sendError;
-    }
+    await addMessageToQueue({
+      phoneNumber: data.user.phone,
+      message,
+      messageOptions,
+      type: 'order_expired',
+      customerId: data.user.email || data.user.phone || data.id,
+      metadata: {
+        orderId: data.id,
+        orderTotal: data.total,
+        expiresAt: data.expirationAt,
+        buttons: messageOptions.buttons,
+        timestamp: new Date().toISOString() // Para verificar frescor da mensagem
+      }
+    }, {
+      priority: 2,
+      delay: 60000 // 1 minute delay
+    });
+    
+    logger.info('Message added to queue successfully');
 
     logger.info('Order expired webhook processed', {
       orderId: data.id,
