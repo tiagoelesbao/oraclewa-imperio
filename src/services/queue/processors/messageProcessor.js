@@ -63,19 +63,6 @@ export const processMessage = async (job) => {
         logger.warn(`Template rendering failed, using original message: ${templateError.message}`);
         result = await sendMessage(phoneNumber, message);
       }
-    } else if (type === 'order_expired') {
-      // SPECIAL HANDLING for order_expired - use message already rendered in webhook controller
-      logger.info('Processing order_expired with pre-rendered message');
-      
-      if (messageOptions?.buttons) {
-        // Send with buttons if available
-        result = await sendMessage(phoneNumber, message, null, messageOptions);
-        logger.info('Sent order_expired message with buttons');
-      } else {
-        // Fallback to text message
-        result = await sendMessage(phoneNumber, message);
-        logger.info('Sent order_expired message as text');
-      }
     } else if (messageOptions?.buttons || messageOptions?.replyButtons) {
       // Se há botões ou opções especiais, usar função apropriada
       result = await sendMessage(phoneNumber, message, null, messageOptions);

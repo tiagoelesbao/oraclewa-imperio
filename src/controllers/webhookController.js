@@ -57,15 +57,8 @@ export const handleOrderExpired = async (req, res) => {
     }
 
     logger.info('Creating message data...');
-    
-    // Normalize phone number format - handle multiple formats
-    const normalizedPhone = normalizePhoneNumber(data.user.phone);
-    
     const messageData = {
-      user: {
-        ...data.user,
-        phone: normalizedPhone
-      },
+      user: data.user,
       product: data.product,
       quantity: data.quantity,
       total: data.total,
@@ -80,9 +73,13 @@ export const handleOrderExpired = async (req, res) => {
     const message = await renderTemplate('order_expired', messageData);
     logger.info('Template rendered successfully, message length:', message ? message.length : 0);
     
-    // Adicionar suporte para botões (simple version)
+    // Adicionar suporte para botões
     const messageOptions = {
       buttons: [
+        {
+          type: 'copy',
+          copyCode: data.pixCode || ''
+        },
         {
           type: 'url',
           displayText: 'Acessar Site',
@@ -92,10 +89,10 @@ export const handleOrderExpired = async (req, res) => {
     };
 
     logger.info('Adding message to queue...');
-    logger.info('Phone number:', normalizedPhone);
+    logger.info('Phone number:', data.user.phone);
     
     await addMessageToQueue({
-      phoneNumber: normalizedPhone,
+      phoneNumber: data.user.phone,
       message,
       messageOptions,
       type: 'order_expired',
@@ -103,9 +100,8 @@ export const handleOrderExpired = async (req, res) => {
       metadata: {
         orderId: data.id,
         orderTotal: data.total,
-        expiresAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
-        buttons: messageOptions.buttons,
-        timestamp: new Date().toISOString() // Para verificar frescor da mensagem
+        expiresAt: data.expirationAt,
+        buttons: messageOptions.buttons
       }
     }, {
       priority: 2,

@@ -9,8 +9,44 @@ import {
   handleButtonClick
 } from '../controllers/webhookController.js';
 import { validateWebhookData } from '../middlewares/validation.js';
+import Joi from 'joi';
 
 const router = Router();
+
+// Copy webhook schema for minimal test
+const webhookSchemas = {
+  order_expired: Joi.object({
+    event: Joi.string().valid('order.expired').required(),
+    timestamp: Joi.date().iso().optional(),
+    data: Joi.object({
+      id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+      product: Joi.object({
+        id: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
+        title: Joi.string().required()
+      }).required(),
+      user: Joi.object({
+        id: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
+        name: Joi.string().required(),
+        phone: Joi.string().pattern(/^[\+\(\)\d\s\-]{10,20}$/).required(),
+        email: Joi.string().email().allow('').optional(),
+        cpf: Joi.string().allow('').optional(),
+        affiliateCode: Joi.string().allow('').optional(),
+        createdAt: Joi.date().iso().optional()
+      }).required(),
+      pixCode: Joi.string().allow('').optional(),
+      quantity: Joi.number().integer().positive().optional(),
+      status: Joi.string().optional(),
+      price: Joi.number().positive().optional(),
+      subtotal: Joi.number().positive().optional(),
+      discount: Joi.number().min(0).optional(),
+      total: Joi.number().positive().required(),
+      expirationAt: Joi.date().iso().optional(),
+      affiliate: Joi.string().allow('').optional(),
+      createdAt: Joi.date().iso().optional(),
+      params: Joi.object().optional()
+    }).required()
+  })
+};
 
 // Debug endpoint - mostra dados recebidos
 router.post('/debug', (req, res) => {
@@ -291,6 +327,60 @@ router.post('/temp-order-expired',
   validateWebhookData('order_expired'),
   handleOrderExpired
 );
+
+// MINIMAL TEST - Debug the 500 error step by step
+router.post('/minimal-order-expired', async (req, res) => {
+  try {
+    console.log('=== MINIMAL ORDER EXPIRED TEST ===');
+    console.log('Body received:', JSON.stringify(req.body, null, 2));
+    
+    // Step 1: Validation check
+    const { error } = webhookSchemas.order_expired.validate(req.body, { abortEarly: false });
+    if (error) {
+      console.log('Validation failed:', error.details);
+      return res.status(400).json({ error: 'Validation failed', details: error.details });
+    }
+    console.log('✅ Validation passed');
+    
+    // Step 2: Data extraction
+    const { data } = req.body;
+    console.log('✅ Data extracted:', data);
+    
+    // Step 3: Template render test
+    const { renderTemplate } = await import('../services/templates/renderer.js');
+    const messageData = {
+      user: data.user,
+      product: data.product,
+      quantity: data.quantity,
+      total: data.total,
+      expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
+      id: data.id
+    };
+    console.log('✅ Message data created');
+    
+    const message = await renderTemplate('order_expired', messageData);
+    console.log('✅ Template rendered, length:', message?.length);
+    
+    // Step 4: Queue manager test
+    const { addMessageToQueue } = await import('../services/queue/manager.js');
+    console.log('✅ Queue manager imported');
+    
+    res.json({
+      success: true,
+      message: 'All steps completed successfully',
+      templateLength: message?.length,
+      messageData: messageData
+    });
+    
+  } catch (error) {
+    console.error('❌ Minimal test failed:', error);
+    res.status(500).json({
+      error: 'Test failed',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
 
 router.post('/temp-order-paid',
   validateWebhookData('order_paid'),
