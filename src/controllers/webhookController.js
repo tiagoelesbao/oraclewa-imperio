@@ -76,35 +76,22 @@ export const handleOrderExpired = async (req, res) => {
     };
     logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
-    logger.info('Adding message to queue for template processing...');
-    logger.info('Phone number:', normalizedPhone);
+    logger.info('Rendering template directly (bypassing queue to fix loop)...');
     
-    await addMessageToQueue({
-      phoneNumber: normalizedPhone,
-      message: '', // Will be rendered by messageProcessor
-      messageOptions: null, // Will be handled by template renderer
-      type: 'order_expired',
-      customerId: data.user.email || data.user.phone || data.id,
-      metadata: {
-        orderId: data.id,
-        orderTotal: data.total,
-        user: {
-          ...data.user,
-          phone: normalizedPhone
-        },
-        product: data.product,
-        quantity: data.quantity,
-        total: data.total,
-        expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
-        pixCode: data.pixCode || '',
-        affiliate: data.affiliate || 'A0RJJ5L1QK',
-        id: data.id,
-        timestamp: new Date().toISOString() // Para verificar frescor da mensagem
-      }
-    }, {
-      priority: 2,
-      delay: 60000 // 1 minute delay
-    });
+    // TEMPORARY FIX: Bypass queue for order_expired to prevent infinite loop
+    try {
+      const message = await renderTemplate('order_expired', messageData);
+      logger.info('Template rendered successfully, sending message...');
+      
+      // Send message directly without queue to avoid loop
+      const { sendMessage } = await import('../services/whatsapp/evolution-manager.js');
+      const result = await sendMessage(normalizedPhone, message);
+      
+      logger.info('Order expired message sent directly:', result);
+    } catch (error) {
+      logger.error('Error sending order expired message directly:', error);
+      throw error;
+    }
     
     logger.info('Message added to queue successfully');
 
