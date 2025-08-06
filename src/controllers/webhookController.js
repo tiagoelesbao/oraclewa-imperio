@@ -76,36 +76,41 @@ export const handleOrderExpired = async (req, res) => {
     };
     logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
-    logger.info('Rendering template directly (bypassing queue to fix loop)...');
+    logger.info('Rendering template...');
+    const message = await renderTemplate('order_expired', messageData);
+    logger.info('Template rendered successfully, message length:', message ? message.length : 0);
     
-    // TEMPORARY FIX: Bypass queue for order_expired to prevent infinite loop
-    try {
-      logger.info('Creating simple fallback message for order_expired...');
-      
-      // Create simple message without complex template rendering
-      const simpleMessage = `⏰ Olá ${messageData.user.name}!
+    // Adicionar suporte para botões (simple version)
+    const messageOptions = {
+      buttons: [
+        {
+          type: 'url',
+          displayText: 'Acessar Site',
+          url: `https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK`
+        }
+      ]
+    };
 
-🚨 Suas ${messageData.quantity} cotas estão prestes a expirar!
-
-🎫 Sorteio: ${messageData.product.title}
-💰 Total: R$ ${messageData.total},00
-
-⚡ Não perca essa oportunidade!
-https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK
-
-*Império Premiações* 🏆`;
-
-      logger.info('Simple message created, sending...');
-      
-      // Send message directly without queue to avoid loop
-      const { sendMessage } = await import('../services/whatsapp/evolution-manager.js');
-      const result = await sendMessage(normalizedPhone, simpleMessage);
-      
-      logger.info('Order expired message sent directly:', result);
-    } catch (error) {
-      logger.error('Error sending order expired message directly:', error);
-      throw error;
-    }
+    logger.info('Adding message to queue...');
+    logger.info('Phone number:', normalizedPhone);
+    
+    await addMessageToQueue({
+      phoneNumber: normalizedPhone,
+      message,
+      messageOptions,
+      type: 'order_expired',
+      customerId: data.user.email || data.user.phone || data.id,
+      metadata: {
+        orderId: data.id,
+        orderTotal: data.total,
+        expiresAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
+        buttons: messageOptions.buttons,
+        timestamp: new Date().toISOString() // Para verificar frescor da mensagem
+      }
+    }, {
+      priority: 2,
+      delay: 60000 // 1 minute delay
+    });
     
     logger.info('Message added to queue successfully');
 
