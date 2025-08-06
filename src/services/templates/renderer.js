@@ -112,6 +112,9 @@ Obrigado por comprar conosco! 💚`
   }
 };
 
+// Prevent infinite loops in template loading
+let isLoadingTemplates = false;
+
 export const renderTemplate = async (templateName, data) => {
   let messageContent;
   
@@ -128,14 +131,29 @@ export const renderTemplate = async (templateName, data) => {
     messageContent = compiledVariation(data);
   } else {
     // Usar template padrão
-    if (!templates[templateName]) {
-      await loadTemplates();
+    if (!templates[templateName] && !isLoadingTemplates) {
+      isLoadingTemplates = true;
+      try {
+        await loadTemplates();
+      } catch (error) {
+        logger.error('Failed to load templates:', error);
+      } finally {
+        isLoadingTemplates = false;
+      }
     }
     
     const template = templates[templateName];
     
     if (!template) {
-      throw new Error(`Template not found: ${templateName}`);
+      logger.error(`Template not found: ${templateName}. Available templates:`, Object.keys(templates));
+      
+      // Create a simple fallback template inline
+      const fallbackTemplate = templateName === 'order_expired' 
+        ? `Olá {{user.name}}! Suas {{quantity}} cotas estão expirando. Total: R$ {{total}},00`
+        : `Olá {{user.name}}! Pagamento confirmado. {{quantity}} cotas - R$ {{total}},00`;
+      
+      const compiled = Handlebars.compile(fallbackTemplate);
+      return compiled(data);
     }
     
     try {
