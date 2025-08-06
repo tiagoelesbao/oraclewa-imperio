@@ -11,6 +11,8 @@ import { connectDatabase } from './database/connection.js';
 import { initializeRedis } from './services/redis/client.js';
 import { initializeQueues } from './services/queue/manager.js';
 import { initializeWhatsAppInstances } from './services/whatsapp/evolution-manager.js';
+import { handleOrderExpired, handleOrderPaid } from './controllers/webhookController.js';
+import { validateWebhookData } from './middlewares/validation.js';
 
 dotenv.config();
 
@@ -34,50 +36,46 @@ app.use((req, res, next) => {
 
 app.use('/api', routes);
 
-// FALLBACK: Capturar webhooks que chegam sem /api prefix
-app.post('/webhook/temp-order-expired', (req, res) => {
-  logger.warn('⚠️ ORDER_EXPIRED webhook received without /api prefix - redirecting...');
-  logger.info('Original request:', {
-    path: req.path,
-    headers: req.headers,
-    body: req.body
-  });
-  
-  // Redirect to correct endpoint with /api prefix
-  const corrected_url = `/api${req.path}`;
-  logger.info(`Redirecting to: ${corrected_url}`);
-  
-  // Forward the request internally
-  req.url = corrected_url;
-  req.originalUrl = corrected_url;
-  
-  // Use the routes with /api prefix
-  routes(req, res, () => {
-    res.status(404).json({ error: 'Endpoint not found after redirect' });
-  });
-});
+// FALLBACK DIRECT: Handle webhooks that come without /api prefix
+app.post('/webhook/temp-order-expired', 
+  validateWebhookData('order_expired'),
+  async (req, res) => {
+    try {
+      logger.warn('⚠️ ORDER_EXPIRED webhook received without /api prefix - handling directly');
+      logger.info('Direct fallback request:', {
+        path: req.path,
+        headers: req.headers,
+        body: req.body
+      });
+      
+      // Call the controller directly
+      await handleOrderExpired(req, res);
+    } catch (error) {
+      logger.error('Error in fallback order_expired handler:', error);
+      res.status(500).json({ error: 'Failed to process webhook' });
+    }
+  }
+);
 
-app.post('/webhook/temp-order-paid', (req, res) => {
-  logger.warn('⚠️ ORDER_PAID webhook received without /api prefix - redirecting...');
-  logger.info('Original request:', {
-    path: req.path,
-    headers: req.headers,
-    body: req.body
-  });
-  
-  // Redirect to correct endpoint with /api prefix
-  const corrected_url = `/api${req.path}`;
-  logger.info(`Redirecting to: ${corrected_url}`);
-  
-  // Forward the request internally
-  req.url = corrected_url;
-  req.originalUrl = corrected_url;
-  
-  // Use the routes with /api prefix
-  routes(req, res, () => {
-    res.status(404).json({ error: 'Endpoint not found after redirect' });
-  });
-});
+app.post('/webhook/temp-order-paid',
+  validateWebhookData('order_paid'), 
+  async (req, res) => {
+    try {
+      logger.warn('⚠️ ORDER_PAID webhook received without /api prefix - handling directly');
+      logger.info('Direct fallback request:', {
+        path: req.path,
+        headers: req.headers,
+        body: req.body
+      });
+      
+      // Call the controller directly
+      await handleOrderPaid(req, res);
+    } catch (error) {
+      logger.error('Error in fallback order_paid handler:', error);
+      res.status(500).json({ error: 'Failed to process webhook' });
+    }
+  }
+);
 
 app.get('/health', (req, res) => {
   res.json({
