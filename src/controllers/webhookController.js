@@ -88,27 +88,17 @@ export const handleOrderExpired = async (req, res) => {
       ]
     };
 
-    logger.info('Adding message to queue...');
+    // SEND DIRECTLY - Skip queue entirely to avoid any queue-related issues
+    logger.info('Sending message directly to avoid queue issues...');
     logger.info('Phone number:', data.user.phone);
     
-    await addMessageToQueue({
-      phoneNumber: data.user.phone,
-      message,
-      messageOptions,
-      type: 'order_expired',
-      customerId: data.user.email || data.user.phone || data.id,
-      metadata: {
-        orderId: data.id,
-        orderTotal: data.total,
-        expiresAt: data.expirationAt,
-        buttons: messageOptions.buttons
-      }
-    }, {
-      priority: 2,
-      delay: 60000 // 1 minute delay
-    });
-    
-    logger.info('Message added to queue successfully');
+    try {
+      const result = await sendMessage(data.user.phone, message);
+      logger.info('Order expired message sent successfully:', result);
+    } catch (sendError) {
+      logger.error('Error sending order expired message:', sendError);
+      throw sendError;
+    }
 
     logger.info('Order expired webhook processed', {
       orderId: data.id,
