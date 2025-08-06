@@ -4,7 +4,6 @@ import { renderTemplate } from '../services/templates/renderer.js';
 import { handleButtonClick as processButtonClick } from '../services/templates/button-options.js';
 import { sendMessage } from '../services/whatsapp/evolution-manager.js';
 
-
 // Conditional import for WebhookLog
 let WebhookLog;
 if (process.env.SKIP_DB !== 'true') {
@@ -123,15 +122,8 @@ export const handleOrderPaid = async (req, res) => {
     }
 
     logger.info('Creating message data...');
-    
-    // Normalize phone number format - handle multiple formats
-    const normalizedPhone = normalizePhoneNumber(data.user.phone);
-    
     const messageData = {
-      user: {
-        ...data.user,
-        phone: normalizedPhone
-      },
+      user: data.user,
       product: data.product,
       quantity: data.quantity,
       total: data.total,
@@ -140,25 +132,33 @@ export const handleOrderPaid = async (req, res) => {
     };
     logger.info('Message data created:', JSON.stringify(messageData, null, 2));
     
-    logger.info('Adding message to queue with interactive buttons...');
-    logger.info('Phone number:', normalizedPhone);
+    logger.info('Rendering template...');
+    const message = await renderTemplate('order_paid', messageData);
+    logger.info('Template rendered successfully, message length:', message ? message.length : 0);
     
-    // Usar o sistema de renderização com botões interativos
+    // Adicionar botão de resposta rápida
+    const messageOptions = {
+      replyButtons: [
+        {
+          id: 'confirm_receipt',
+          title: 'Confirmar Recebimento'
+        }
+      ]
+    };
+
+    logger.info('Adding message to queue...');
+    logger.info('Phone number:', data.user.phone);
+    
     await addMessageToQueue({
-      phoneNumber: normalizedPhone,
-      message: '', // Will be rendered by messageProcessor
-      messageOptions: null, // Will be handled by template renderer
+      phoneNumber: data.user.phone,
+      message,
+      messageOptions,
       type: 'order_paid',
       customerId: data.user.email || data.user.phone || data.id,
       metadata: {
         orderId: data.id,
         orderTotal: data.total,
-        user: data.user,
-        product: data.product,
-        quantity: data.quantity,
-        total: data.total,
-        createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
-        id: data.id,
+        replyButtons: messageOptions.replyButtons,
         timestamp: new Date().toISOString() // Para verificar frescor da mensagem
       }
     }, {
