@@ -27,9 +27,9 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 *Império Premiações* 🏆`
   },
   {
-    template: `⏱️ *{{user.name}}, corre que ainda dá tempo!*
+    template: `⏱️ *{{user.name}}, ÚLTIMAS HORAS!*
 
-🚨 *Suas {{quantity}} cotas estão expirando!*
+🚨 *URGENTE: {{quantity}} cotas expirando!*
 
 📋 *Informações:*
 • Sorteio: {{product.title}}
@@ -41,7 +41,7 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 ⚡ *Finalize agora:*
 https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK
 
-🎯 Não deixe essa oportunidade passar!
+⏰ *TEMPO ESGOTANDO!* Não deixe R$ 200.000,00 passar!
 
 *Império Premiações* 🎲`
   },
