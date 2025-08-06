@@ -35,6 +35,7 @@ router.post('/debug-expired', (req, res) => {
   console.log('Expected Secret:', process.env.WEBHOOK_SECRET);
   console.log('Match:', req.headers['x-auth-webhook'] === process.env.WEBHOOK_SECRET);
   console.log('Body Event:', req.body?.event);
+  console.log('Full Body:', JSON.stringify(req.body, null, 2));
   console.log('========================');
   
   res.json({
@@ -43,7 +44,41 @@ router.post('/debug-expired', (req, res) => {
     expectedSecret: process.env.WEBHOOK_SECRET ? 'SET' : 'NOT_SET',
     match: req.headers['x-auth-webhook'] === process.env.WEBHOOK_SECRET,
     event: req.body?.event,
+    fullPayload: req.body,
     timestamp: new Date().toISOString()
+  });
+});
+
+// Endpoint específico para capturar REAL expired webhooks do Império
+router.post('/capture-real-expired', (req, res) => {
+  console.log('=== REAL EXPIRED WEBHOOK CAPTURE ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Raw Body:', JSON.stringify(req.body, null, 2));
+  
+  // Extrair dados específicos
+  const data = req.body?.data;
+  if (data) {
+    console.log('USER DATA:', JSON.stringify(data.user, null, 2));
+    console.log('PRODUCT DATA:', JSON.stringify(data.product, null, 2));
+    console.log('QUANTITY:', data.quantity);
+    console.log('TOTAL:', data.total);
+    console.log('EXPIRATION:', data.expirationAt);
+  }
+  console.log('===============================');
+  
+  res.json({ 
+    success: true, 
+    message: 'Real expired webhook captured for analysis',
+    timestamp: new Date().toISOString(),
+    receivedData: {
+      event: req.body?.event,
+      userData: data?.user,
+      productData: data?.product,
+      quantity: data?.quantity,
+      total: data?.total,
+      expiration: data?.expirationAt
+    }
   });
 });
 
