@@ -80,12 +80,26 @@ export const handleOrderExpired = async (req, res) => {
     
     // TEMPORARY FIX: Bypass queue for order_expired to prevent infinite loop
     try {
-      const message = await renderTemplate('order_expired', messageData);
-      logger.info('Template rendered successfully, sending message...');
+      logger.info('Creating simple fallback message for order_expired...');
+      
+      // Create simple message without complex template rendering
+      const simpleMessage = `⏰ Olá ${messageData.user.name}!
+
+🚨 Suas ${messageData.quantity} cotas estão prestes a expirar!
+
+🎫 Sorteio: ${messageData.product.title}
+💰 Total: R$ ${messageData.total},00
+
+⚡ Não perca essa oportunidade!
+https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliado=A0RJJ5L1QK
+
+*Império Premiações* 🏆`;
+
+      logger.info('Simple message created, sending...');
       
       // Send message directly without queue to avoid loop
       const { sendMessage } = await import('../services/whatsapp/evolution-manager.js');
-      const result = await sendMessage(normalizedPhone, message);
+      const result = await sendMessage(normalizedPhone, simpleMessage);
       
       logger.info('Order expired message sent directly:', result);
     } catch (error) {
