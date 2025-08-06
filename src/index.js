@@ -34,6 +34,51 @@ app.use((req, res, next) => {
 
 app.use('/api', routes);
 
+// FALLBACK: Capturar webhooks que chegam sem /api prefix
+app.post('/webhook/temp-order-expired', (req, res) => {
+  logger.warn('⚠️ ORDER_EXPIRED webhook received without /api prefix - redirecting...');
+  logger.info('Original request:', {
+    path: req.path,
+    headers: req.headers,
+    body: req.body
+  });
+  
+  // Redirect to correct endpoint with /api prefix
+  const corrected_url = `/api${req.path}`;
+  logger.info(`Redirecting to: ${corrected_url}`);
+  
+  // Forward the request internally
+  req.url = corrected_url;
+  req.originalUrl = corrected_url;
+  
+  // Use the routes with /api prefix
+  routes(req, res, () => {
+    res.status(404).json({ error: 'Endpoint not found after redirect' });
+  });
+});
+
+app.post('/webhook/temp-order-paid', (req, res) => {
+  logger.warn('⚠️ ORDER_PAID webhook received without /api prefix - redirecting...');
+  logger.info('Original request:', {
+    path: req.path,
+    headers: req.headers,
+    body: req.body
+  });
+  
+  // Redirect to correct endpoint with /api prefix
+  const corrected_url = `/api${req.path}`;
+  logger.info(`Redirecting to: ${corrected_url}`);
+  
+  // Forward the request internally
+  req.url = corrected_url;
+  req.originalUrl = corrected_url;
+  
+  // Use the routes with /api prefix
+  routes(req, res, () => {
+    res.status(404).json({ error: 'Endpoint not found after redirect' });
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
