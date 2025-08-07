@@ -8,7 +8,7 @@ export const ORDER_EXPIRED_VARIATIONS = [
 📊 *Detalhes da sua reserva:*
 🎫 *Sorteio:* {{product.title}}
 🔢 *Quantidade:* {{quantity}} cota(s)
-💰 *Valor Total:* R$ {{total}},00
+💰 *Valor Total:* R$ {{total}}
 📅 *Expira em:* {{expirationAt}}
 
 🏆 *PREMIAÇÃO TOTAL: R$ 170.000,00*
@@ -33,7 +33,7 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 
 📋 *Informações:*
 • Sorteio: {{product.title}}
-• Valor: R$ {{total}},00
+• Valor: R$ {{total}}
 • Vence: {{expirationAt}}
 
 💰 *Prêmio de R$ 170.000,00 te esperando!*
@@ -50,7 +50,7 @@ https://imperiopremioss.com/campanha/rapidinha-r-20000000-em-premiacoes?&afiliad
 
 ⚠️ *Última chance para suas cotas!*
 
-🎟️ {{quantity}} cotas - R$ {{total}},00
+🎟️ {{quantity}} cotas - R$ {{total}}
 📅 Expira: {{expirationAt}}
 
 🏆 *Concorra a R$ 170.000,00!*

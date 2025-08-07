@@ -11,7 +11,7 @@ export const ORDER_PAID_VARIATIONS = [
 
 🎫 {{product.title}}
 🔢 *{{quantity}} cotas*
-💰 *R$ {{total}},00*
+💰 *R$ {{total}}*
 
 ━━━━━━━━━━━━━━━
 🏆 *PREMIAÇÃO*
@@ -39,7 +39,7 @@ https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF
 🎟️ *{{quantity}} cotas*
 {{product.title}}
 
-💰 *Total: R$ {{total}},00*
+💰 *Total: R$ {{total}}*
 
 ━━━━━━━━━━━━━━━
 
@@ -63,7 +63,7 @@ https://chat.whatsapp.com/EsOryU1oONNII64AAOz6TF
 ━━━━━━━━━━━━━━━
 
 🎫 *{{quantity}} cotas*
-💵 *R$ {{total}},00*
+💵 *R$ {{total}}*
 
 ━━━━━━━━━━━━━━━
 
