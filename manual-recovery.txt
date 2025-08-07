@@ -1,0 +1,32 @@
+🚨 RECUPERAÇÃO MANUAL URGENTE - VENDAS PERDIDAS
+
+CLIENTES QUE FALHARAM:
+=====================
+
+1. 👤 Elialdo Soares Batista
+   📞 (14) 99755-1265 
+   💰 R$ 51,20
+   ⏰ 02:23:31 - 07/08/2025
+
+2. 👤 Eduardo de Almeida tegani  
+   📞 (11) 93213-6247
+   💰 R$ 22,00
+   ⏰ 02:24:55 - 07/08/2025
+
+AÇÃO MANUAL NECESSÁRIA:
+=======================
+Após reiniciar o sistema, envie confirmação manual para estes clientes via WhatsApp.
+
+MENSAGEM SUGERIDA:
+==================
+"🎉 *Pagamento Confirmado!*
+
+Olá {NOME}! 
+
+✅ Recebemos seu pagamento de *R$ {VALOR}*
+📦 Seu pedido já está sendo processado
+📧 Em breve você receberá todos os detalhes
+
+Obrigado pela preferência!
+
+*Império - Sempre com você!*"

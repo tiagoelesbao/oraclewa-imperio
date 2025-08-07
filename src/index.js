@@ -13,6 +13,7 @@ import { initializeQueues } from './services/queue/manager.js';
 import { initializeWhatsAppInstances } from './services/whatsapp/evolution-manager.js';
 import { handleOrderExpired, handleOrderPaid } from './controllers/webhookController.js';
 import { validateWebhookData } from './middlewares/validation.js';
+import { broadcastModule } from './modules/broadcast/index.js';
 
 dotenv.config();
 
@@ -110,9 +111,27 @@ async function startServer() {
     await initializeWhatsAppInstances();
     logger.info('WhatsApp instances initialized');
 
+    // Initialize broadcast module (non-blocking)
+    if (broadcastModule.isEnabled()) {
+      try {
+        const broadcastInitialized = await broadcastModule.initialize();
+        if (broadcastInitialized) {
+          logger.info('🚀 Broadcast module initialized successfully');
+        } else {
+          logger.warn('⚠️ Broadcast module failed to initialize');
+        }
+      } catch (error) {
+        logger.error('❌ Broadcast module initialization error:', error);
+      }
+    } else {
+      logger.info('ℹ️ Broadcast module is disabled');
+    }
+
     server.listen(PORT, () => {
       logger.info(`OracleWA server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
+      logger.info(`Core Module: ✅ Active`);
+      logger.info(`Broadcast Module: ${broadcastModule.isEnabled() ? '✅ Enabled' : '❌ Disabled'}`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
