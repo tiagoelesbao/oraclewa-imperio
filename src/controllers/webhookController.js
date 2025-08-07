@@ -87,11 +87,11 @@ export const handleOrderExpired = async (req, res) => {
         orderTotal: data.total,
         expiresAt: data.expirationAt,
         buttons: messageOptions.buttons,
-        // ADD COMPLETE TEMPLATE DATA for messageProcessor
+        // ADD COMPLETE TEMPLATE DATA for messageProcessor  
         user: data.user,
         product: data.product,
-        quantity: data.quantity,
-        total: data.total,
+        quantity: data.quantity || 1,
+        total: formattedTotal,
         pixCode: data.pixCode || '',
         expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
         affiliate: data.affiliate || 'A0RJJ5L1QK',
@@ -194,7 +194,14 @@ export const handleOrderPaid = async (req, res) => {
         orderId: data.id,
         orderTotal: data.total,
         replyButtons: messageOptions.replyButtons,
-        timestamp: new Date().toISOString() // Para verificar frescor da mensagem
+        timestamp: new Date().toISOString(), // Para verificar frescor da mensagem
+        // DADOS COMPLETOS PARA TEMPLATE RENDERING
+        user: data.user,
+        product: data.product,
+        quantity: data.quantity || 1,
+        total: formattedTotal,
+        createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+        id: data.id
       }
     }, {
       priority: 3 // Highest priority
