@@ -33,11 +33,24 @@ export const handleOrderExpired = async (req, res) => {
     }
 
     logger.info('Creating message data...');
+    
+    // Garantir que o total seja formatado corretamente
+    let formattedTotal = data.total;
+    if (typeof data.total === 'number') {
+      formattedTotal = data.total.toFixed(2);
+    } else if (typeof data.total === 'string' && data.total) {
+      // Se veio como string, garantir formato correto
+      const numericTotal = parseFloat(data.total.replace(/[^\d.,]/g, '').replace(',', '.'));
+      if (!isNaN(numericTotal)) {
+        formattedTotal = numericTotal.toFixed(2);
+      }
+    }
+    
     const messageData = {
       user: data.user,
       product: data.product,
-      quantity: data.quantity,
-      total: data.total,
+      quantity: data.quantity || 1,
+      total: formattedTotal,
       pixCode: data.pixCode || '',
       expirationAt: data.expirationAt ? new Date(data.expirationAt).toLocaleDateString('pt-BR') : null,
       affiliate: data.affiliate || 'A0RJJ5L1QK',
@@ -131,11 +144,24 @@ export const handleOrderPaid = async (req, res) => {
     }
 
     logger.info('Creating message data...');
+    
+    // Garantir que o total seja formatado corretamente
+    let formattedTotal = data.total;
+    if (typeof data.total === 'number') {
+      formattedTotal = data.total.toFixed(2);
+    } else if (typeof data.total === 'string' && data.total) {
+      // Se veio como string, garantir formato correto
+      const numericTotal = parseFloat(data.total.replace(/[^\d.,]/g, '').replace(',', '.'));
+      if (!isNaN(numericTotal)) {
+        formattedTotal = numericTotal.toFixed(2);
+      }
+    }
+    
     const messageData = {
       user: data.user,
       product: data.product,
-      quantity: data.quantity,
-      total: data.total,
+      quantity: data.quantity || 1,
+      total: formattedTotal,
       createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
       id: data.id
     };

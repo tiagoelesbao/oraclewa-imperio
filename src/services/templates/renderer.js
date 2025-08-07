@@ -149,8 +149,8 @@ export const renderTemplate = async (templateName, data) => {
       
       // Create a simple fallback template inline
       const fallbackTemplate = templateName === 'order_expired' 
-        ? `Olá {{user.name}}! Suas {{quantity}} cotas estão expirando. Total: R$ {{total}},00`
-        : `Olá {{user.name}}! Pagamento confirmado. {{quantity}} cotas - R$ {{total}},00`;
+        ? `Olá {{user.name}}! Suas {{quantity}} cotas estão expirando. Total: R$ {{total}}`
+        : `Olá {{user.name}}! Pagamento confirmado. {{quantity}} cotas - R$ {{total}}`;
       
       const compiled = Handlebars.compile(fallbackTemplate);
       return compiled(data);
